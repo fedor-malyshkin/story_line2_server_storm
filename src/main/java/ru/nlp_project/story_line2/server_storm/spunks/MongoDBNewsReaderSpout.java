@@ -1,70 +1,72 @@
 package ru.nlp_project.story_line2.server_storm.spunks;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
+import org.apache.storm.tuple.Fields;
+
+import ru.nlp_project.story_line2.server_storm.NamesUtil;
 
 public class MongoDBNewsReaderSpout implements IRichSpout {
-
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
+	private SpoutOutputCollector collector;
 
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
-		// TODO Auto-generated method stub
+		this.collector = collector;
+		initilizeMongoDBClient();
+	}
+
+	private void initilizeMongoDBClient() {
 
 	}
 
 	@Override
 	public void close() {
-		// TODO Auto-generated method stub
+		shutdownMongoDBClient();
+
+	}
+
+	private void shutdownMongoDBClient() {
 
 	}
 
 	@Override
-	public void activate() {
-		// TODO Auto-generated method stub
-
-	}
+	public void activate() {}
 
 	@Override
-	public void deactivate() {
-		// TODO Auto-generated method stub
-
-	}
+	public void deactivate() {}
 
 	@Override
 	public void nextTuple() {
-		// TODO Auto-generated method stub
-
+		collector.emit(Arrays.asList("domain" + System.currentTimeMillis(),
+				"id" + System.currentTimeMillis()), System.currentTimeMillis());
 	}
 
 	@Override
 	public void ack(Object msgId) {
-		// TODO Auto-generated method stub
+		System.out.println(msgId);
 
 	}
 
 	@Override
 	public void fail(Object msgId) {
-		// TODO Auto-generated method stub
+		System.out.println(msgId);
 
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		// TODO Auto-generated method stub
+		declarer.declare(new Fields(NamesUtil.DOMAIN_FIELD_NAME, NamesUtil.ID_FIELD_NAME));
 
 	}
 
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

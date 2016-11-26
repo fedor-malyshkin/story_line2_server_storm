@@ -10,6 +10,7 @@ import ru.nlp_project.story_line2.server_storm.bolts.NounExtractorBolt;
 import ru.nlp_project.story_line2.server_storm.spunks.MongoDBNewsReaderSpout;
 
 public class BaseLocalTopology {
+	private static final String CLUSTER_NAME = "test";
 	private static final String BOLT_NAME_EXTRACTOR = "name_extractor";
 	private static final String BOLT_NOUN_EXTRACTOR = "noun_extractor";
 	private static final String SPUNK_MONGODB_NEWS_READER = "mongodb_news_reader";
@@ -27,11 +28,15 @@ public class BaseLocalTopology {
 				.shuffleGrouping(BOLT_NOUN_EXTRACTOR);
 
 		Config conf = new Config();
-		conf.setDebug(true);
-		conf.setNumWorkers(2);
+		conf.setDebug(false);
+		conf.setNumWorkers(1);
+		// время обработки не более 5 минут
+		conf.setMessageTimeoutSecs(60*5);
+		//conf.setMessageTimeoutSecs(secs);
+		
 
 		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology("test", conf, builder.createTopology());
+		cluster.submitTopology(CLUSTER_NAME, conf, builder.createTopology());
 		Utils.sleep(999_999_999);
 /*
 		cluster.killTopology("test");
