@@ -1,6 +1,7 @@
 # Обработчик сообщений на базе [Apache Storm](http://storm.apache.org/)
 
-### Маршрут прохождения данных
-[mongodb_news_reader (spunk) ](docs/spunks.md#mongodb_news_reader) -> [noun_extractor (bolt) ](docs/bolts.md#noun_extractor) -> [name_extractor (bolt) ](docs/bolts.md#name_extractor)
-
 ### Конфигурация
+Конфигурирование сервера осуществляется посредством конфигурационного файла 'storm.yaml'
+(поле 'server_storm.config.file'), располженного в /server_storm/apache-storm-${server_storm_version}/conf/. Данные представлены в формате YAML.
+
+### Форматы хранения данных (JSON)

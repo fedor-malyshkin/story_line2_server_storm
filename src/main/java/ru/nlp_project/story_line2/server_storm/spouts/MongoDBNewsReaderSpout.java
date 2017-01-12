@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.spunks;
+package ru.nlp_project.story_line2.server_storm.spouts;
 
 import java.util.Arrays;
 import java.util.Map;

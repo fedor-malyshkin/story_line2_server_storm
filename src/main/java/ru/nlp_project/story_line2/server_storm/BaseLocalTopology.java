@@ -7,7 +7,7 @@ import org.apache.storm.utils.Utils;
 
 import ru.nlp_project.story_line2.server_storm.bolts.NameExtractorBolt;
 import ru.nlp_project.story_line2.server_storm.bolts.NounExtractorBolt;
-import ru.nlp_project.story_line2.server_storm.spunks.MongoDBNewsReaderSpout;
+import ru.nlp_project.story_line2.server_storm.spouts.MongoDBNewsReaderSpout;
 
 public class BaseLocalTopology {
 	private static final String CLUSTER_NAME = "test";
