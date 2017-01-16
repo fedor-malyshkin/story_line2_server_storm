@@ -1,0 +1,2 @@
+# строка подключения к MongoDB для сохранения результатаов анализа
+server_storm.connection.url: mongodb://localhost:27017/
