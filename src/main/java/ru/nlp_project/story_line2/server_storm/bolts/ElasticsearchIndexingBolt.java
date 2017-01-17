@@ -1,6 +1,5 @@
 package ru.nlp_project.story_line2.server_storm.bolts;
 
-import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.storm.task.OutputCollector;
@@ -10,16 +9,17 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 
-import ru.nlp_project.story_line2.server_storm.NamesUtil;
+import ru.nlp_project.story_line2.server_storm.util.NamesUtil;
 
-public class NounExtractorBolt implements IRichBolt {
+public class ElasticsearchIndexingBolt implements IRichBolt {
 
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 8970948884690790271L;
+	private static final long serialVersionUID = -7621987543099710796L;
 	private OutputCollector collector;
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
@@ -28,17 +28,17 @@ public class NounExtractorBolt implements IRichBolt {
 	@Override
 	public void execute(Tuple input) {
 		System.out.println(input.toString());
-		collector.emit(input, Arrays.asList("domain" + System.currentTimeMillis(),
-				"id" + System.currentTimeMillis()));
 		collector.ack(input);
+		
 	}
 
 	@Override
-	public void cleanup() {}
+	public void cleanup() {
+	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(NamesUtil.DOMAIN_FIELD_NAME, NamesUtil.ID_FIELD_NAME));
+		declarer.declare(new Fields(NamesUtil.TUPLE_FIELD_NAME_DOMAIN, NamesUtil.TUPLE_FIELD_NAME_ID));
 
 	}
 

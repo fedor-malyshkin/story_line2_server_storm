@@ -1,5 +1,6 @@
 package ru.nlp_project.story_line2.server_storm.dagger;
 
+import ru.nlp_project.story_line2.server_storm.bolts.GLRProcessingBolt;
 import ru.nlp_project.story_line2.server_storm.spouts.CrawlerNewsArticleReaderSpout;
 
 public class ApplicationBuilder {
@@ -16,6 +17,10 @@ public class ApplicationBuilder {
 			builder = DaggerApplicationComponent.create();
 		return builder;
 
+	}
+
+	public static void inject(GLRProcessingBolt instance) {
+		getBuilder().inject(instance);
 	}
 
 }

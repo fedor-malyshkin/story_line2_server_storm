@@ -4,50 +4,41 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import de.undercouch.bson4jackson.types.ObjectId;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class NewsArticle {
+public class CrawlerNewsArticle {
 
-	public NewsArticle() {
+	public CrawlerNewsArticle() {
 		super();
 	}
 
-	public NewsArticle(CrawlerNewsArticle crawlerNewsArticle) {
-		clone(crawlerNewsArticle);
-	}
-
-	protected void clone(CrawlerNewsArticle other) {
-		this.crawler_id = other._id;
-		this.creationDate = new Date(other.creationDate.getTime());
-		this.date = new Date(other.date.getTime());
-		this.content = other.content;
-		this.path = other.path;
-		this.domain = other.domain;
-		this.title = other.title;
-		this.url = other.url;
+	public CrawlerNewsArticle(Date creationDate, Date date, String content, String path,
+			String domain, String title, String url) {
+		super();
+		this.creationDate = creationDate;
+		this.date = date;
+		this.content = content;
+		this.path = path;
+		this.domain = domain;
+		this.title = title;
+		this.url = url;
 	}
 
 	/**
 	 * Record id
 	 */
-	@JsonInclude(value = Include.NON_NULL)
+	@JsonInclude(value=Include.NON_NULL)
 	@JsonProperty("_id")
 	public ObjectId _id;
-
-	/**
-	 * Crawler "news" record id
-	 */
-	@JsonProperty("crawler_id")
-	public ObjectId crawler_id;
 	/**
 	 * фактическая дата записи в БД
 	 */
 	@JsonProperty("creation_date")
-	public Date creationDate = new Date(System.currentTimeMillis());
+	public Date creationDate = new Date(0);
 	/**
 	 * дата новости
 	 */
@@ -78,4 +69,15 @@ public class NewsArticle {
 	 */
 	@JsonProperty("url")
 	public String url;
+	
+	/**
+	 * Признак обработки сообщения.
+	 */
+	@JsonProperty("processed")
+	public boolean processed = false;
+	/**
+	 * Признак обработки сообщения.
+	 */
+	@JsonProperty("in_process")
+	public boolean inProcess = false;
 }

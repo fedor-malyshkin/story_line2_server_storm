@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm;
+package ru.nlp_project.story_line2.server_storm.impl;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import ru.nlp_project.story_line2.config.ConfigurationException;
 import ru.nlp_project.story_line2.config.YAMLConfigurationReader;
+import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 
 public class ConfigurationManagerImpl implements IConfigurationManager {
 

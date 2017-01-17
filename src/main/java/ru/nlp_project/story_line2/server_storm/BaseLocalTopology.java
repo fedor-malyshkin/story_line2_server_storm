@@ -5,8 +5,8 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 
-import ru.nlp_project.story_line2.server_storm.bolts.NameExtractorBolt;
-import ru.nlp_project.story_line2.server_storm.bolts.NounExtractorBolt;
+import ru.nlp_project.story_line2.server_storm.bolts.ElasticsearchIndexingBolt;
+import ru.nlp_project.story_line2.server_storm.bolts.GLRProcessingBolt;
 import ru.nlp_project.story_line2.server_storm.spouts.CrawlerNewsArticleReaderSpout;
 
 public class BaseLocalTopology {
@@ -23,9 +23,9 @@ public class BaseLocalTopology {
 	private void run() {
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout(SPOUT_CRAWLER_NEWS_ARTICLE_READER, new CrawlerNewsArticleReaderSpout(), 1);
-		builder.setBolt(BOLT_NOUN_EXTRACTOR, new NounExtractorBolt(), 1)
+		builder.setBolt(BOLT_NOUN_EXTRACTOR, new GLRProcessingBolt(), 1)
 				.shuffleGrouping(SPOUT_CRAWLER_NEWS_ARTICLE_READER);
-		builder.setBolt(BOLT_NAME_EXTRACTOR, new NameExtractorBolt(), 1)
+		builder.setBolt(BOLT_NAME_EXTRACTOR, new ElasticsearchIndexingBolt(), 1)
 				.shuffleGrouping(BOLT_NOUN_EXTRACTOR);
 
 		Config conf = new Config();
