@@ -11,6 +11,8 @@ import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
@@ -26,11 +28,13 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	public IMongoDBClient mongoDBClient;
 	@Inject
 	public IConfigurationManager configurationManager;
+	private Logger logger;
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
+		logger = LoggerFactory.getLogger(this.getClass());
 		ApplicationBuilder.inject(this);
 	}
 
@@ -55,29 +59,43 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	 */
 	@Override
 	public void nextTuple() {
-		CrawlerNewsArticle crawlerNewsArticle =
-				mongoDBClient.getNextUnprocessedCrawlerArticle(lastEmittedDate);
-		// there is no data
-		if (null == crawlerNewsArticle)
-			return;
-		String id = mongoDBClient.writeNewNewsArticle(crawlerNewsArticle);
-		collector.emit(Arrays.asList(crawlerNewsArticle.domain, id), id);
+
+		try {
+			CrawlerNewsArticle crawlerNewsArticle =
+					mongoDBClient.getNextUnprocessedCrawlerArticle(lastEmittedDate);
+			// there is no data
+			if (null == crawlerNewsArticle)
+				return;
+			String id = mongoDBClient.writeNewNewsArticle(crawlerNewsArticle);
+			collector.emit(Arrays.asList(crawlerNewsArticle.domain, id), id);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
+
 	}
 
 	@Override
 	public void ack(Object msgId) {
-		mongoDBClient.markNewsArticleAsProcessed((String) msgId);
+		try {
+			mongoDBClient.markNewsArticleAsProcessed((String) msgId);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
 	@Override
 	public void fail(Object msgId) {
-		mongoDBClient.unmarkCrawlerArticleAsInProcess((String) msgId);
+		try {
+			mongoDBClient.unmarkCrawlerArticleAsInProcess((String) msgId);
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		}
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
-		declarer.declare(new Fields(NamesUtil.TUPLE_FIELD_NAME_DOMAIN, NamesUtil.TUPLE_FIELD_NAME_ID));
-
+		declarer.declare(
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_DOMAIN, NamesUtil.TUPLE_FIELD_NAME_ID));
 	}
 
 	@Override

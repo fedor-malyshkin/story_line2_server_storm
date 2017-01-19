@@ -58,9 +58,86 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		logger = LoggerFactory.getLogger(this.getClass());
 	}
 
+	protected org.bson.types.ObjectId createBsonObjectId(ObjectId objectId) {
+		if (objectId == null)
+			throw new IllegalArgumentException("objectId must be nut null");
+		// TODO: rewrite serializer/deserializer for modern format
+		return org.bson.types.ObjectId.createFromLegacyFormat(objectId.getTime(),
+				objectId.getMachine(), objectId.getInc());
+	}
+
+	@Override
+	public ObjectId createObjectId(String hexString) {
+		if (!org.bson.types.ObjectId.isValid(hexString))
+			throw new IllegalArgumentException(
+					"hexString is not valid - may be its ti,e to revrite for moder ObjectIdFormat");
+		org.bson.types.ObjectId objectIdInt = new org.bson.types.ObjectId(hexString);
+		return new ObjectId(objectIdInt.getTimestamp(), objectIdInt.getMachineIdentifier(),
+				objectIdInt.getCounter());
+	}
+
+
+	private MongoCollection<DBObject> getCrawlerNewsCollection() throws Exception {
+		if (crawlerCollection == null) {
+			MongoDatabase database = client.getDatabase(NamesUtil.CRAWLER_MONGODB_DATABASE_NAME);
+			crawlerCollection = database
+					.getCollection(NamesUtil.CRAWLER_MONGODB_NEWS_COLLECTION_NAME, DBObject.class);
+		}
+		return crawlerCollection;
+	}
+
+	@Override
+	public String getHexString(ObjectId objectId) {
+		if (objectId == null)
+			throw new IllegalArgumentException("objectId must be nut null");
+		// TODO: rewrite serializer/deserializer for modern format
+		org.bson.types.ObjectId objectIdInt = org.bson.types.ObjectId.createFromLegacyFormat(
+				objectId.getTime(), objectId.getMachine(), objectId.getInc());
+		return objectIdInt.toHexString();
+	}
+
+
+	@Override
+	public NewsArticle getNewsArticle(String objectId) throws Exception {
+		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollection();
+		Bson filter = eq("_id", new org.bson.types.ObjectId(objectId));
+		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
+		DBObject dbObject = iter.first();
+		return JSONUtils.bsonDeserialize(dbObject, NewsArticle.class);
+	}
+
+
+	@Override
+	public CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate)
+			throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerNewsCollection();
+		if (null == lastEmittedDate)
+			lastEmittedDate = new Date(1);
+		Bson filter = and(gt("date", new BsonDateTime(lastEmittedDate.getTime())),
+				or(ne("in_process", true), ne("processed", true)));
+		// { "$set" : { "in_process" : "true"}}
+		Bson update = BasicDBObject.parse("{$set: {'in_process' : true}}");
+		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
+		if (item != null)
+			return JSONUtils.bsonDeserialize(item, CrawlerNewsArticle.class);
+		return null;
+	}
+
+	private MongoCollection<DBObject> getServerStormNewsArticleCollection() throws Exception {
+		if (serverStormCollection == null) {
+			MongoDatabase database =
+					client.getDatabase(NamesUtil.SERVER_STORM_MONGODB_DATABASE_NAME);
+			serverStormCollection = database.getCollection(
+					NamesUtil.SERVER_STORM_MONGODB_NEWS_ARTICLE_COLLECTION_NAME, DBObject.class);
+		}
+		return serverStormCollection;
+	}
+
+
+
 	public void initialize() {
 		MongoClientURI mongoClientURI =
-				new MongoClientURI(configurationManager.getMasterConfiguration().connectionUrl);
+				new MongoClientURI(configurationManager.getMasterConfiguration().mongoDBConnectionUrl);
 		this.client = new MongoClient(mongoClientURI);
 		// update: get updated element
 		this.afterFindOneAndUpdateOptions = new FindOneAndUpdateOptions();
@@ -75,85 +152,9 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public void shutdown() {
-		client.close();
-	}
-
-
-	private MongoCollection<DBObject> getServerStormNewsArticleCollections() {
-		if (serverStormCollection == null) {
-			MongoDatabase database =
-					client.getDatabase(NamesUtil.SERVER_STORM_MONGODB_DATABASE_NAME);
-			serverStormCollection = database.getCollection(
-					NamesUtil.SERVER_STORM_MONGODB_NEWS_ARTICLE_COLLECTION_NAME, DBObject.class);
-		}
-		return serverStormCollection;
-	}
-
-	private MongoCollection<DBObject> getCrawlerNewsCollections() {
-		if (crawlerCollection == null) {
-			MongoDatabase database = client.getDatabase(NamesUtil.CRAWLER_MONGODB_DATABASE_NAME);
-			crawlerCollection = database
-					.getCollection(NamesUtil.CRAWLER_MONGODB_NEWS_COLLECTION_NAME, DBObject.class);
-		}
-		return crawlerCollection;
-	}
-
-
-	@Override
-	public CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate) {
-		MongoCollection<DBObject> collection = getCrawlerNewsCollections();
-		if (null == lastEmittedDate)
-			lastEmittedDate = new Date(1);
-		Bson filter = and(gt("date", new BsonDateTime(lastEmittedDate.getTime())),
-				or(ne("in_process", true), ne("processed", true)));
-		// { "$set" : { "in_process" : "true"}}
-		Bson update = BasicDBObject.parse("{$set: {'in_process' : true}}");
-		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
-		if (item != null)
-			return JSONUtils.bsonDeserialize(item, CrawlerNewsArticle.class);
-		return null;
-	}
-
-
-	@Override
-	public String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle) {
-		NewsArticle newsArticle = new NewsArticle(crawlerNewsArticle);
-		BasicDBObject dbObject;
-		dbObject = JSONUtils.bsonSerialize(newsArticle);
-		MongoCollection<DBObject> collection = getServerStormNewsArticleCollections();
-		Bson filter = and(eq("domain", newsArticle.domain), eq("path", newsArticle.path));
-		Bson newDocument = new Document("$set", dbObject);
-		DBObject findOneAndUpdate = collection.findOneAndUpdate(filter, newDocument,
-				upsertAfterFindOneAndUpdateOptions);
-		org.bson.types.ObjectId oid = (org.bson.types.ObjectId) findOneAndUpdate.get("_id");
-		return oid.toHexString();
-	}
-
-	@Override
-	public String getHexString(ObjectId objectId) {
-		if (objectId == null)
-			throw new IllegalArgumentException("objectId must be nut null");
-		// TODO: rewrite serializer/deserializer for modern format
-		org.bson.types.ObjectId objectIdInt = org.bson.types.ObjectId.createFromLegacyFormat(
-				objectId.getTime(), objectId.getMachine(), objectId.getInc());
-		return objectIdInt.toHexString();
-	}
-
-	@Override
-	public ObjectId createObjectId(String hexString) {
-		if (!org.bson.types.ObjectId.isValid(hexString))
-			throw new IllegalArgumentException(
-					"hexString is not valid - may be its ti,e to revrite for moder ObjectIdFormat");
-		org.bson.types.ObjectId objectIdInt = new org.bson.types.ObjectId(hexString);
-		return new ObjectId(objectIdInt.getTimestamp(), objectIdInt.getMachineIdentifier(),
-				objectIdInt.getCounter());
-	}
-
-	@Override
-	public void markNewsArticleAsProcessed(String msgId) {
-		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollections();
-		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollections();
+	public void markNewsArticleAsProcessed(String msgId) throws Exception {
+		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollection();
+		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollection();
 		Bson filter = eq("_id", new org.bson.types.ObjectId(msgId));
 		// { "$set" : { "in_process" : "true"}}
 		Bson setProcessed = BasicDBObject.parse("{$set: {'processed' : true}}");
@@ -166,8 +167,13 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public void unmarkCrawlerArticleAsInProcess(String msgId) {
-		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollections();
+	public void shutdown() {
+		client.close();
+	}
+
+	@Override
+	public void unmarkCrawlerArticleAsInProcess(String msgId) throws Exception {
+		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollection();
 		Bson filter = eq("_id", new org.bson.types.ObjectId(msgId));
 		// { "$set" : { "in_process" : "true"}}
 		Bson setProcessed = BasicDBObject.parse("{$set: {'in_process' : false}}");
@@ -175,15 +181,26 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public NewsArticle getNewsArticle(String objectId) {
-		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollections();
-		Bson filter = eq("_id", new org.bson.types.ObjectId(objectId));
-		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
-		DBObject dbObject = iter.first();
-		return JSONUtils.bsonDeserialize(dbObject, NewsArticle.class);
-
+	public void updateNewsArticle(NewsArticle newsArticle) throws Exception {
+		MongoCollection<DBObject> serverCollection = getServerStormNewsArticleCollection();
+		Bson filter = eq("_id", createBsonObjectId(newsArticle._id));
+		BasicDBObject dbObject = JSONUtils.bsonSerialize(newsArticle);
+		Bson newDocument = new Document("$set", dbObject);
+		serverCollection.findOneAndUpdate(filter, newDocument);
 	}
 
-
+	@Override
+	public String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle) throws Exception {
+		NewsArticle newsArticle = new NewsArticle(crawlerNewsArticle);
+		BasicDBObject dbObject;
+		dbObject = JSONUtils.bsonSerialize(newsArticle);
+		MongoCollection<DBObject> collection = getServerStormNewsArticleCollection();
+		Bson filter = and(eq("domain", newsArticle.domain), eq("path", newsArticle.path));
+		Bson newDocument = new Document("$set", dbObject);
+		DBObject findOneAndUpdate = collection.findOneAndUpdate(filter, newDocument,
+				upsertAfterFindOneAndUpdateOptions);
+		org.bson.types.ObjectId oid = (org.bson.types.ObjectId) findOneAndUpdate.get("_id");
+		return oid.toHexString();
+	}
 
 }

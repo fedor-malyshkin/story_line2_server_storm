@@ -1,6 +1,10 @@
 package ru.nlp_project.story_line2.server_storm.datamodel;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.map.HashedMap;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -78,4 +82,8 @@ public class NewsArticle {
 	 */
 	@JsonProperty("url")
 	public String url;
+	
+	@JsonInclude(value = Include.NON_NULL)
+	@JsonProperty("facts")
+	public Map<String, List<NewsArticleFact>> facts = new HashedMap<>();
 }

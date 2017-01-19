@@ -8,11 +8,16 @@ import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 
 
 public interface IMongoDBClient {
-	void shutdown();
+	ObjectId createObjectId(String hexString);
 
 	String getHexString(ObjectId objectId);
 
-	ObjectId createObjectId(String hexString);
+	/**
+	 * @param objectId
+	 * @return
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
+	 */
+	NewsArticle getNewsArticle(String objectId) throws Exception;
 
 	/**
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
@@ -20,10 +25,9 @@ public interface IMongoDBClient {
 	 * 
 	 * @param lastEmittedDate
 	 * @return
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
 	 */
-	CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate);
-
-	String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle);
+	CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate) throws Exception;
 
 	/**
 	 * Отметит новостную статью как обработанную.
@@ -32,11 +36,30 @@ public interface IMongoDBClient {
 	 * выставляется в статье круалера.
 	 * 
 	 * @param msgId
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
 	 */
-	void markNewsArticleAsProcessed(String objectId);
+	void markNewsArticleAsProcessed(String objectId) throws Exception;
 
-	void unmarkCrawlerArticleAsInProcess(String objectId);
+	void shutdown();
 
-	NewsArticle getNewsArticle(String objectId);
+	/**
+	 * @param objectId
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
+	 */
+	void unmarkCrawlerArticleAsInProcess(String objectId) throws Exception;
+
+	/**
+	 * @param newsArticle
+	 * @throws Exception
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
+	 */
+	void updateNewsArticle(NewsArticle newsArticle) throws Exception;
+
+	/**
+	 * @param crawlerNewsArticle
+	 * @return
+	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
+	 */
+	String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle) throws Exception;
 
 }

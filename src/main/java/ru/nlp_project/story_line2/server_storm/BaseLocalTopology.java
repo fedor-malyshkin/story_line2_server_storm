@@ -6,13 +6,13 @@ import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 
 import ru.nlp_project.story_line2.server_storm.bolts.ElasticsearchIndexingBolt;
-import ru.nlp_project.story_line2.server_storm.bolts.GLRProcessingBolt;
+import ru.nlp_project.story_line2.server_storm.bolts.TextProcessingBolt;
 import ru.nlp_project.story_line2.server_storm.spouts.CrawlerNewsArticleReaderSpout;
 
 public class BaseLocalTopology {
 	private static final String CLUSTER_NAME = "test";
-	private static final String BOLT_NAME_EXTRACTOR = "name_extractor";
-	private static final String BOLT_NOUN_EXTRACTOR = "noun_extractor";
+	private static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
+	private static final String BOLT_TEXT_PROCESSOR = "text_processor";
 	private static final String SPOUT_CRAWLER_NEWS_ARTICLE_READER = "crawler_news_article_reader";
 
 	public static void main(String args[]) {
@@ -23,10 +23,10 @@ public class BaseLocalTopology {
 	private void run() {
 		TopologyBuilder builder = new TopologyBuilder();
 		builder.setSpout(SPOUT_CRAWLER_NEWS_ARTICLE_READER, new CrawlerNewsArticleReaderSpout(), 1);
-		builder.setBolt(BOLT_NOUN_EXTRACTOR, new GLRProcessingBolt(), 1)
+		builder.setBolt(BOLT_TEXT_PROCESSOR, new TextProcessingBolt(), 1)
 				.shuffleGrouping(SPOUT_CRAWLER_NEWS_ARTICLE_READER);
-		builder.setBolt(BOLT_NAME_EXTRACTOR, new ElasticsearchIndexingBolt(), 1)
-				.shuffleGrouping(BOLT_NOUN_EXTRACTOR);
+		builder.setBolt(BOLT_ELASTICSEARCH_INDEXER, new ElasticsearchIndexingBolt(), 1)
+				.shuffleGrouping(BOLT_TEXT_PROCESSOR);
 
 		Config conf = new Config();
 		conf.setDebug(false);
