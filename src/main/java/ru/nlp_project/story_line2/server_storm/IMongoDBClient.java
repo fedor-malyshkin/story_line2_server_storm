@@ -2,15 +2,11 @@ package ru.nlp_project.story_line2.server_storm;
 
 import java.util.Date;
 
-import de.undercouch.bson4jackson.types.ObjectId;
 import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 
 
 public interface IMongoDBClient {
-	ObjectId createObjectId(String hexString);
-
-	String getHexString(ObjectId objectId);
 
 	/**
 	 * @param objectId

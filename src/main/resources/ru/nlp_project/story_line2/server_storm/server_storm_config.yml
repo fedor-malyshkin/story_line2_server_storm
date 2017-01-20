@@ -1,2 +1,7 @@
 # строка подключения к MongoDB для сохранения результатаов анализа
-server_storm.mongodb.connection.url: mongodb://localhost:27017/
+server_storm.mongodb.connection_url: mongodb://localhost:27017/
+server_storm.elasticsearch.hostname: localhost
+server_storm.elasticsearch.port: 9200
+server_storm.elasticsearch.index.real_name: story_line2_v1
+server_storm.elasticsearch.index.read_alias: story_line2_read_index
+server_storm.elasticsearch.index.write_alias: story_line2_read_index

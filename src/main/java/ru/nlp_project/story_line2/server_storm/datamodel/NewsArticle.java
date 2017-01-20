@@ -11,8 +11,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import de.undercouch.bson4jackson.types.ObjectId;
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NewsArticle {
 
@@ -40,13 +38,13 @@ public class NewsArticle {
 	 */
 	@JsonInclude(value = Include.NON_NULL)
 	@JsonProperty("_id")
-	public ObjectId _id;
+	public Id _id;
 
 	/**
 	 * Crawler "news" record id
 	 */
 	@JsonProperty("crawler_id")
-	public ObjectId crawler_id;
+	public Id crawler_id;
 	/**
 	 * фактическая дата записи в БД
 	 */
@@ -82,8 +80,18 @@ public class NewsArticle {
 	 */
 	@JsonProperty("url")
 	public String url;
-	
+
 	@JsonInclude(value = Include.NON_NULL)
 	@JsonProperty("facts")
 	public Map<String, List<NewsArticleFact>> facts = new HashedMap<>();
+
+	@Override
+	public String toString() {
+		return "NewsArticle [_id=" + _id + ", crawler_id=" + crawler_id + ", creationDate="
+				+ creationDate + ", date=" + date + ", content=" + content + ", path=" + path
+				+ ", domain=" + domain + ", title=" + title + ", url=" + url + ", facts=" + facts
+				+ "]";
+	}
+
+
 }

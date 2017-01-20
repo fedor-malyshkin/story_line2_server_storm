@@ -12,12 +12,18 @@ public interface IConfigurationManager {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	class MasterConfiguration {
 
-		@JsonProperty("server_storm.mongodb.connection.url")
+		@JsonProperty("server_storm.mongodb.connection_url")
 		public String mongoDBConnectionUrl;
-		@JsonProperty("server_storm.elasticsearch.host.name")
+		@JsonProperty("server_storm.elasticsearch.hostname")
 		public String elasticsearchHostName;
 		@JsonProperty("server_storm.elasticsearch.port")
 		public int elasticsearchPort;
+		@JsonProperty("server_storm.elasticsearch.index.real_name")
+		public String elasticsearchRealIndex;
+		@JsonProperty("server_storm.elasticsearch.index.read_alias")
+		public String elasticsearchReadAlias;
+		@JsonProperty("server_storm.elasticsearch.index.write_alias")
+		public String elasticsearchWriteAlias;
 	}
 
 

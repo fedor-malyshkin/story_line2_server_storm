@@ -4,10 +4,8 @@ import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import de.undercouch.bson4jackson.types.ObjectId;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlerNewsArticle {
@@ -33,7 +31,7 @@ public class CrawlerNewsArticle {
 	 */
 	@JsonInclude(value=Include.NON_NULL)
 	@JsonProperty("_id")
-	public ObjectId _id;
+	public Id _id;
 	/**
 	 * фактическая дата записи в БД
 	 */
