@@ -10,11 +10,26 @@ import com.mongodb.BasicDBObject;
 
 import static org.junit.Assert.*;
 
+import ru.nlp_project.story_line2.server_storm.datamodel.Id;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 
 public class BSONUtilsTest {
 
-
+	@Test
+	public void testConversionFromNativeObjectIdMapperObjectId() {
+		String origId = "5882931787a1387bf7a398b6";
+		Id id = new Id(origId);
+		assertTrue(ObjectId.isValid(origId));
+		ObjectId bsonObjectId = BSONUtils.createBsonObjectId(id);
+		assertEquals(origId, bsonObjectId.toHexString());
+		// serialization (check conversion from native ObjectId (with process identifier) to legacy
+		// ObjectId with 3 components)
+		NewsArticle article = new NewsArticle();
+		article._id = id;
+		BasicDBObject serialize = BSONUtils.serialize(article);
+		bsonObjectId = (ObjectId) serialize.get("_id");
+		assertEquals(origId, bsonObjectId.toHexString());
+	}
 
 	@Test
 	public void testBsonProcessing() throws IOException {

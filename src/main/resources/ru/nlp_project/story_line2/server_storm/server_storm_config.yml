@@ -1,7 +1,15 @@
 # строка подключения к MongoDB для сохранения результатаов анализа
 server_storm.mongodb.connection_url: mongodb://localhost:27017/
+# elastic
 server_storm.elasticsearch.hostname: localhost
 server_storm.elasticsearch.port: 9200
 server_storm.elasticsearch.index.real_name: story_line2_v1
 server_storm.elasticsearch.index.read_alias: story_line2_read_index
-server_storm.elasticsearch.index.write_alias: story_line2_read_index
+server_storm.elasticsearch.index.write_alias: story_line2_write_index
+# GLR parser
+glr_parser.debug: true
+glr_parser.dictionary_file: dictionary.yaml
+glr_parser.sentence_data: ru-opennlp-model-sent.bin
+glr_parser.morph_zip_db: dict.story_line2.zip
+glr_parser.articles: [fios, geos, nouns]
+glr_parser.fact_file: facts.yaml

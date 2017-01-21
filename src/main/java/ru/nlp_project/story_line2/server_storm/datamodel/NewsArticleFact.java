@@ -9,7 +9,7 @@ public class NewsArticleFact {
 	public int sentenceIndex;
 	@JsonProperty("fact_key")
 	public String factKey;
-	@JsonProperty("fact_sentence_start_position")
+	@JsonProperty("fact_sentence_start_pos")
 	public int factStartPos;
 	@JsonProperty("fact_value")
 	public String factValue;

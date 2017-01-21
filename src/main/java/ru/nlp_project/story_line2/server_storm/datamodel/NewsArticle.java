@@ -49,7 +49,7 @@ public class NewsArticle {
 	 * фактическая дата записи в БД
 	 */
 	@JsonProperty("creation_date")
-	public Date creationDate = new Date(System.currentTimeMillis());
+	public Date creationDate = new Date(0);
 	/**
 	 * дата новости
 	 */

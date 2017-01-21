@@ -7,6 +7,7 @@ import java.util.Date;
 import org.bson.BSON;
 import org.bson.BSONObject;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -165,6 +166,9 @@ public class BSONUtils {
 			BsonFactory bsonFactory = new BsonFactory();
 			bsonFactory.enable(BsonParser.Feature.HONOR_DOCUMENT_LENGTH);
 			bsonMapper = new ObjectMapper(bsonFactory);
+			bsonMapper.setSerializationInclusion(Include.NON_NULL);
+
+
 			final SimpleModule module = new SimpleModule("", Version.unknownVersion());
 			module.addSerializer(Date.class, new BsonDateSerializer());
 			module.addDeserializer(Date.class, new BsonDateDeserializer());
@@ -186,14 +190,25 @@ public class BSONUtils {
 		return objectIdInt.toHexString();
 	}
 
+	// Big-Endian helpers, in this class because all other BSON numbers are little-endian
+
+	public static int makeInt(final byte b3, final byte b2, final byte b1, final byte b0) {
+		// CHECKSTYLE:OFF
+		return (((b3) << 24) | ((b2 & 0xff) << 16) | ((b1 & 0xff) << 8) | ((b0 & 0xff)));
+		// CHECKSTYLE:ON
+	}
+
 
 	public static ObjectId createObjectId(String hexString) {
 		if (!org.bson.types.ObjectId.isValid(hexString))
 			throw new IllegalArgumentException(
 					"hexString is not valid - may be its time to rewrite for moder ObjectId format!&");
-		org.bson.types.ObjectId objectIdInt = new org.bson.types.ObjectId(hexString);
-		return new ObjectId(objectIdInt.getTimestamp(), objectIdInt.getMachineIdentifier(),
-				objectIdInt.getCounter());
+		org.bson.types.ObjectId bsonObjectId = new org.bson.types.ObjectId(hexString);
+		byte[] b = bsonObjectId.toByteArray();
+		// such complex way because bytes in native Object id is mapped to 4 components - machine,
+		// time, process, counter
+		return new ObjectId(makeInt(b[0], b[1], b[2], b[3]), makeInt(b[4], b[5], b[6], b[7]),
+				makeInt(b[8], b[9], b[10], b[11]));
 	}
 
 	public static org.bson.types.ObjectId createBsonObjectId(Id id) {

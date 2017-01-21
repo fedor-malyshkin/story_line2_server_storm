@@ -88,8 +88,9 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		MongoCollection<DBObject> collection = getCrawlerNewsCollection();
 		if (null == lastEmittedDate)
 			lastEmittedDate = new Date(1);
-		Bson filter = and(gt("date", new BsonDateTime(lastEmittedDate.getTime())), or(
-				ne(NEWS_ARTICLE_FIELD_IN_PROCESS, true), ne(NEWS_ARTICLE_FIELD_PROCESSED, true)));
+		// > lastEmittedDate.getTime() AND in_processed != true AND proceed != true
+		Bson filter = and(gt("date", new BsonDateTime(lastEmittedDate.getTime())),
+				ne(NEWS_ARTICLE_FIELD_IN_PROCESS, true), ne(NEWS_ARTICLE_FIELD_PROCESSED, true));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
 				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_IN_PROCESS + "' : true}}");

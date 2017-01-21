@@ -10,10 +10,6 @@ package ru.nlp_project.story_line2.server_storm.datamodel;
 public class Id {
 	public String value = "";
 
-	public Id() {
-		super();
-	}
-
 	public Id(String value) {
 		super();
 		this.value = value;

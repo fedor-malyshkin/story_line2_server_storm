@@ -17,7 +17,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
@@ -28,8 +29,8 @@ public class TextAnalyserImplTest {
 
 	@BeforeClass
 	public static void setUpClass() throws IOException {
-		String parserConfigDir = unzipClasspathToTempDir(
-				"ru/nlp_project/story_line2/server_storm/impl/TextAnalyserImplTest.zip");
+		String parserConfigDir = unzipClasspathToDir(
+				"ru/nlp_project/story_line2/server_storm/impl/TextAnalyserImplTest.zip", null);
 		System.setProperty(IConfigurationManager.CONFIGURATION_SYSTEM_KEY,
 				new File(parserConfigDir + "/glr-config.yaml").toURI().toString());
 	}
@@ -67,7 +68,7 @@ public class TextAnalyserImplTest {
 	 * @throws IOException
 	 */
 	@SuppressWarnings("unchecked")
-	private static String unzipClasspathToTempDir(String cpZipFile) throws IOException {
+	public static String unzipClasspathToDir(String cpZipFile, File newDir) throws IOException {
 		InputStream resourceAsStream =
 				Thread.currentThread().getContextClassLoader().getResourceAsStream(cpZipFile);
 		File glrZipFile = File.createTempFile("glr-parser-config", ".zip");
@@ -78,8 +79,12 @@ public class TextAnalyserImplTest {
 		int BUFFER = 2048;
 
 		ZipFile zip = new ZipFile(glrZipFile);
-		String newPath = glrZipFile.getAbsolutePath().substring(0,
-				glrZipFile.getAbsolutePath().length() - 4);
+		String newPath = null;
+		if (newDir == null)
+			newPath = glrZipFile.getAbsolutePath().substring(0,
+					glrZipFile.getAbsolutePath().length() - 4);
+		else
+			newPath = newDir.getAbsolutePath();
 
 		new File(newPath).mkdir();
 		Enumeration<ZipEntry> zipFileEntries = (Enumeration<ZipEntry>) zip.entries();
