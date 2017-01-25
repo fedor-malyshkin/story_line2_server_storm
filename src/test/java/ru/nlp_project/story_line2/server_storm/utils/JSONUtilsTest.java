@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.util;
+package ru.nlp_project.story_line2.server_storm.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +14,7 @@ import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.datamodel.Id;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class JSONUtilsTest {
 
@@ -21,7 +22,7 @@ public class JSONUtilsTest {
 	@Test
 	public void testJsonDeserialize_Simple() throws IOException {
 		String res =
-				"ru/nlp_project/story_line2/server_storm/util/JSONUtilsTest.testJsonDeserialize_Simple.json";
+				"ru/nlp_project/story_line2/server_storm/utils/JSONUtilsTest.testJsonDeserialize_Simple.json";
 		String json = getStringFromCP(res);
 		CrawlerNewsArticle result = JSONUtils.deserialize(json, CrawlerNewsArticle.class);
 		assertNotNull(result);
@@ -33,7 +34,7 @@ public class JSONUtilsTest {
 	@Test
 	public void testJsonSerialize_Simple() throws IOException {
 		String expectedString =
-				"ru/nlp_project/story_line2/server_storm/util/JSONUtilsTest.testJsonSerialize_Simple.json";
+				"ru/nlp_project/story_line2/server_storm/utils/JSONUtilsTest.testJsonSerialize_Simple.json";
 		String val = JSONUtils.serialize(new CrawlerNewsArticle());
 		assertEquals(getStringFromCP(expectedString), val);
 	}
@@ -45,7 +46,7 @@ public class JSONUtilsTest {
 	@Test
 	public void testJsonSerialize_Complex() throws IOException {
 		String expectedString =
-				"ru/nlp_project/story_line2/server_storm/util/JSONUtilsTest.testJsonSerialize_Complex.json";
+				"ru/nlp_project/story_line2/server_storm/utils/JSONUtilsTest.testJsonSerialize_Complex.json";
 		NewsArticle newsArticle = new NewsArticle();
 
 		List<NewsArticleFact> list = Arrays.asList(new NewsArticleFact(0, "GEO", 2, "Ашхабад"),

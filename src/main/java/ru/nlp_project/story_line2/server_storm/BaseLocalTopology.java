@@ -29,7 +29,7 @@ import ru.nlp_project.story_line2.server_storm.spouts.CrawlerNewsArticleReaderSp
  *
  */
 public class BaseLocalTopology {
-	private static final String CLUSTER_NAME = "test";
+	private static final String TOPOLOGY_NAME = "test";
 	private static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
 	private static final String BOLT_TEXT_PROCESSOR = "text_processor";
 	private static final String SPOUT_CRAWLER_NEWS_ARTICLE_READER = "crawler_news_article_reader";
@@ -56,7 +56,6 @@ public class BaseLocalTopology {
 				mainConf.toURI().toString());
 
 		new BaseLocalTopology().run();
-		System.out.println(System.getProperties());
 	}
 
 	private void run() {
@@ -76,11 +75,11 @@ public class BaseLocalTopology {
 
 
 		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology(CLUSTER_NAME, conf, builder.createTopology());
+		cluster.submitTopology(TOPOLOGY_NAME, conf, builder.createTopology());
 		Utils.sleep(999_999_999);
-		/*
-		 * cluster.killTopology("test"); cluster.shutdown();
-		 */
+		cluster.killTopology(TOPOLOGY_NAME);
+		cluster.shutdown();
+		
 
 	}
 

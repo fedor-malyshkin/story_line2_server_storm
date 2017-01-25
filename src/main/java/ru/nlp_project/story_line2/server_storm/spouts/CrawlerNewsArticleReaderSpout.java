@@ -18,7 +18,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
 import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
-import ru.nlp_project.story_line2.server_storm.util.NamesUtil;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;

@@ -22,7 +22,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfi
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.datamodel.Id;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.util.JSONUtils;
+import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {
 

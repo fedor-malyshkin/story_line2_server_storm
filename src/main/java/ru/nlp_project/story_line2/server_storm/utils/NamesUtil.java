@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.util;
+package ru.nlp_project.story_line2.server_storm.utils;
 
 public class NamesUtil {
 

@@ -22,7 +22,7 @@ import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
 import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
-import ru.nlp_project.story_line2.server_storm.util.NamesUtil;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class TextProcessingBolt implements IRichBolt {
 

@@ -17,7 +17,7 @@ import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.util.NamesUtil;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ElasticsearchIndexingBolt implements IRichBolt {
 

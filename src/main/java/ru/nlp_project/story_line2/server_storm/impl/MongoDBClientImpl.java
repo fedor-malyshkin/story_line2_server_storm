@@ -4,7 +4,6 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.ne;
-import static com.mongodb.client.model.Filters.or;
 
 import java.util.Date;
 
@@ -32,8 +31,8 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.util.BSONUtils;
-import ru.nlp_project.story_line2.server_storm.util.NamesUtil;
+import ru.nlp_project.story_line2.server_storm.utils.BSONUtils;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 /**
  * Клиент mongoDB для сохранения в БД.
