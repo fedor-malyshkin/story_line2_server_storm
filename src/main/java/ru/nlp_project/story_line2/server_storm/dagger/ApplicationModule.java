@@ -25,8 +25,7 @@ public class ApplicationModule {
 
 	@Provides
 	@Singleton
-	IConfigurationManager provideConfigurationManager() {
-		ConfigurationManagerImpl instance = new ConfigurationManagerImpl();
+	IConfigurationManager provideConfigurationManager(ConfigurationManagerImpl instance) {
 		instance.initialize();
 		return instance;
 	}
