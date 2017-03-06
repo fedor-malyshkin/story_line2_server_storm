@@ -17,9 +17,9 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.topology.TopologyBuilder;
 import org.apache.storm.utils.Utils;
 
-import ru.nlp_project.story_line2.server_storm.bolts.ElasticsearchIndexingBolt;
-import ru.nlp_project.story_line2.server_storm.bolts.TextProcessingBolt;
-import ru.nlp_project.story_line2.server_storm.spouts.CrawlerNewsArticleReaderSpout;
+import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
+import ru.nlp_project.story_line2.server_storm.bolt.TextProcessingBolt;
+import ru.nlp_project.story_line2.server_storm.spout.CrawlerNewsArticleReaderSpout;
 
 /**
  * Run with JVM args

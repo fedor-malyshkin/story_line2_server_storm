@@ -1,6 +1,6 @@
 package ru.nlp_project.story_line2.server_storm;
 
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public interface ISearchManager {
 	public void shutdown();

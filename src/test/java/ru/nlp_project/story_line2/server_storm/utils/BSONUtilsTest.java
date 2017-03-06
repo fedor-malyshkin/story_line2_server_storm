@@ -10,8 +10,8 @@ import com.mongodb.BasicDBObject;
 
 import static org.junit.Assert.*;
 
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.BSONUtils;
 
 public class BSONUtilsTest {

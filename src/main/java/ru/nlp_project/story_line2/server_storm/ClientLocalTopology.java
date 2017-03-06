@@ -1,27 +1,10 @@
 package ru.nlp_project.story_line2.server_storm;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.storm.Config;
-import org.apache.storm.ILocalDRPC;
 import org.apache.storm.LocalCluster;
-import org.apache.storm.LocalDRPC;
-import org.apache.storm.generated.StormTopology;
-import org.apache.storm.trident.Stream;
-import org.apache.storm.trident.TridentTopology;
-import org.apache.storm.trident.operation.Function;
-import org.apache.storm.trident.operation.MapFunction;
-import org.apache.storm.trident.operation.TridentCollector;
-import org.apache.storm.trident.operation.TridentOperationContext;
-import org.apache.storm.trident.tuple.TridentTuple;
-import org.apache.storm.tuple.Fields;
-import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.Utils;
 
 /**
@@ -65,55 +48,16 @@ public class ClientLocalTopology {
 		conf.setMessageTimeoutSecs(60 * 5);
 
 
-		LocalDRPC drpc = new LocalDRPC();
 		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology(TOPOLOGY_NAME, conf, ClientLocalTopologyBuilder.build(drpc));
+		// build topology
+		TopologyBuilder builder = new TopologyBuilder();
 
-		String res = drpc.execute("exclamation", "hello");
-		System.out.println("Results for 'hello': " + res);
+		cluster.submitTopology(TOPOLOGY_NAME, conf, builder.createTopology());
 
 		Utils.sleep(999_999_999);
 
 		cluster.killTopology(TOPOLOGY_NAME);
 		cluster.shutdown();
-		drpc.shutdown();
-	}
-
-	public static class ClientLocalTopologyBuilder {
-
-		public static StormTopology build(ILocalDRPC drpc) {
-			TridentTopology topology = new TridentTopology();
-
-			Stream drpcStream = topology.newDRPCStream("exclamation", drpc);
-			drpcStream.each(new Fields("args") , new AddExclamationFunction(), new Fields("res"));
-
-			return topology.build();
-		}
-
-	}
-
-
-	public static class AddExclamationFunction implements Function {
-
-		private static final long serialVersionUID = -96856553155699283L;
-
-		@Override
-		public void prepare(Map conf, TridentOperationContext context) {
-
-		}
-
-		@Override
-		public void cleanup() {
-
-		}
-
-		@Override
-		public void execute(TridentTuple tuple, TridentCollector collector) {
-			String string = tuple.getString(0);
-			collector.emit(new Values(string + "!"));
-			collector.emit(new Values(string + "!" ));
-		}
-
 
 	}
 

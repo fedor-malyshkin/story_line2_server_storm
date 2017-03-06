@@ -18,7 +18,7 @@ import ru.nlp_project.story_line2.glr_parser.InterpreterImpl.FactField;
 import ru.nlp_project.story_line2.glr_parser.SentenceProcessingContext;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 
 public class TextAnalyserImpl implements ITextAnalyser {
 

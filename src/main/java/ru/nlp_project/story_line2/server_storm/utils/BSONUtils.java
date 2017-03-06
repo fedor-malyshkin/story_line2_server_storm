@@ -29,13 +29,13 @@ import de.undercouch.bson4jackson.BsonFactory;
 import de.undercouch.bson4jackson.BsonGenerator;
 import de.undercouch.bson4jackson.BsonParser;
 import de.undercouch.bson4jackson.types.ObjectId;
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
+import ru.nlp_project.story_line2.server_storm.model.Id;
 
 /**
  * Утилита для серипизации/десериализации данных BSON формат.
  * 
  * WARN: Поля, являющиеся идентификаторами (или ссылками на идентификаторы) необходимо делать типа
- * {@link ru.nlp_project.story_line2.server_storm.datamodel.Id}.
+ * {@link ru.nlp_project.story_line2.server_storm.model.Id}.
  * 
  * @author fedor
  *

@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.spouts;
+package ru.nlp_project.story_line2.server_storm.spout;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -16,8 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
-import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
-import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class CrawlerNewsArticleReaderSpout implements IRichSpout {
@@ -35,7 +34,7 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
 		logger = LoggerFactory.getLogger(this.getClass());
-		ApplicationBuilder.inject(this);
+		//ApplicationBuilder.inject(this);
 	}
 
 	@Override

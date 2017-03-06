@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.bolts;
+package ru.nlp_project.story_line2.server_storm.bolt;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -20,8 +20,8 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
 import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class TextProcessingBolt implements IRichBolt {
@@ -42,7 +42,7 @@ public class TextProcessingBolt implements IRichBolt {
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
 		logger = LoggerFactory.getLogger(this.getClass());
-		ApplicationBuilder.inject(this);
+		ApplicationBuilder.getBuilder().inject(this);
 	}
 
 	@Override

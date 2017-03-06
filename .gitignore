@@ -13,5 +13,6 @@ build
 *.json
 .log
 .gz
+/logs
 /.apt_generated/
 *.factorypath

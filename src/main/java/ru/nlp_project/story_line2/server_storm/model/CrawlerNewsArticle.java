@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.datamodel;
+package ru.nlp_project.story_line2.server_storm.model;
 
 import java.util.Date;
 

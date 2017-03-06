@@ -1,4 +1,4 @@
-package ru.nlp_project.story_line2.server_storm.bolts;
+package ru.nlp_project.story_line2.server_storm.bolt;
 
 import java.util.Map;
 
@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ElasticsearchIndexingBolt implements IRichBolt {
@@ -35,7 +35,7 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
 		logger = LoggerFactory.getLogger(this.getClass());
-		ApplicationBuilder.inject(this);
+		ApplicationBuilder.getBuilder().inject(this);
 	}
 
 	@Override

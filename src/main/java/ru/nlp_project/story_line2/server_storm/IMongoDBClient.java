@@ -2,8 +2,8 @@ package ru.nlp_project.story_line2.server_storm;
 
 import java.util.Date;
 
-import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 
 public interface IMongoDBClient {

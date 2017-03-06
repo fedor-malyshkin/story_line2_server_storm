@@ -10,9 +10,9 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 
 /**
  * Run with JVM args

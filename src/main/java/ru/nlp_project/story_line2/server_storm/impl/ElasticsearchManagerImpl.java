@@ -19,9 +19,9 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
+import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 
 
 public class TextAnalyserImplTest {

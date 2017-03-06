@@ -29,8 +29,8 @@ import com.mongodb.client.model.UpdateOptions;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
-import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.BSONUtils;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 

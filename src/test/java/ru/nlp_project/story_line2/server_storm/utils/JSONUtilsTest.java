@@ -10,10 +10,10 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import ru.nlp_project.story_line2.server_storm.datamodel.CrawlerNewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.datamodel.NewsArticleFact;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class JSONUtilsTest {

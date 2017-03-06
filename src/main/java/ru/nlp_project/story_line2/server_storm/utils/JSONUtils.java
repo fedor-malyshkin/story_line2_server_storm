@@ -23,13 +23,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
-import ru.nlp_project.story_line2.server_storm.datamodel.Id;
+import ru.nlp_project.story_line2.server_storm.model.Id;
 
 /**
  * Утилита для серипизации/десериализации данных в JSON формат.
  * 
  * WARN: Поля, являющиеся идентификаторами (или ссылками на идентификаторы) необходимо делать типа
- * {@link ru.nlp_project.story_line2.server_storm.datamodel.Id}.
+ * {@link ru.nlp_project.story_line2.server_storm.model.Id}.
  * 
  * @author fedor
  *
