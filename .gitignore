@@ -10,7 +10,6 @@ output
 target
 bin
 build
-*.json
 .log
 .gz
 /logs
