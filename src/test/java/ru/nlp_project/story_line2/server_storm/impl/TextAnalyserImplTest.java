@@ -15,6 +15,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -25,6 +26,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 
 
+@Ignore
 public class TextAnalyserImplTest {
 
 	@BeforeClass
@@ -45,6 +47,7 @@ public class TextAnalyserImplTest {
 
 
 	@Test
+	@Ignore
 	public void testParseText1() throws IOException {
 		testable.parseText("Это фото сегодня прислал наш читатель из деревни Ермица. "
 				+ "Завтра, по данным Коми ЦГМС, в Усть-Цилемском районе -40...-42°C. "
