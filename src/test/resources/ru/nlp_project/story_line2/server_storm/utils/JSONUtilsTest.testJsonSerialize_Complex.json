@@ -1,6 +1,5 @@
 {
   "_id" : "123",
-  "creation_date" : "1970-01-01T00:00:00Z",
   "facts" : {
     "geo" : [ {
       "sentence_index" : 0,

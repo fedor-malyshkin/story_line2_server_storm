@@ -1,7 +1,5 @@
 package ru.nlp_project.story_line2.server_storm;
 
-import java.util.Date;
-
 import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
@@ -19,11 +17,10 @@ public interface IMongoDBClient {
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
 	 * поле {"in_process": true }
 	 * 
-	 * @param lastEmittedDate
 	 * @return
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
 	 */
-	CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate) throws Exception;
+	CrawlerNewsArticle getNextUnprocessedCrawlerEntry() throws Exception;
 
 	/**
 	 * Отметит новостную статью как обработанную.
@@ -57,5 +54,7 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их обрабатывать
 	 */
 	String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle) throws Exception;
+
+	void markCrawlerEntryAsProcessed(String msgId) throws Exception;
 
 }

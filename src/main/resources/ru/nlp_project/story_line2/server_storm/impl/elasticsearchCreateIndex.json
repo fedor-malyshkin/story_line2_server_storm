@@ -46,10 +46,12 @@
 			"properties" : {
 				"crawler_id" : { "type" : "keyword" },
 				"creation_date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis" },
-				"date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis"  },
+				"processing_date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis"  },
 				"content" : { "type" : "text",  "include_in_all": true },
 				"path" : { "type" : "keyword" },
-				"domain" : { "type" : "keyword"},
+				"source" : { "type" : "keyword"},
+				"image_url" : { "index" : "no"},
+				"image_data" : { "index" : "no"},
 				"title" : { "type" : "text", "include_in_all": true},
 				"url" : { "type" : "keyword"}
 			}

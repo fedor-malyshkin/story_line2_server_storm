@@ -1,7 +1,6 @@
 package ru.nlp_project.story_line2.server_storm.spout;
 
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -16,25 +15,25 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
+import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	private static final long serialVersionUID = 1L;
 	private SpoutOutputCollector collector;
-	private Date lastEmittedDate = null;
 	@Inject
 	public IMongoDBClient mongoDBClient;
 	@Inject
 	public IConfigurationManager configurationManager;
-	private Logger logger;
+	private Logger log;
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
-		logger = LoggerFactory.getLogger(this.getClass());
-		//ApplicationBuilder.inject(this);
+		log = LoggerFactory.getLogger(this.getClass());
+		ServerStormBuilder.getBuilder(conf).inject(this);
 	}
 
 	@Override
@@ -60,15 +59,14 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	public void nextTuple() {
 
 		try {
-			CrawlerNewsArticle crawlerNewsArticle =
-					mongoDBClient.getNextUnprocessedCrawlerArticle(lastEmittedDate);
+			CrawlerNewsArticle crawlerNewsArticle = mongoDBClient.getNextUnprocessedCrawlerEntry();
 			// there is no data
 			if (null == crawlerNewsArticle)
 				return;
 			String id = mongoDBClient.writeNewNewsArticle(crawlerNewsArticle);
-			collector.emit(Arrays.asList(crawlerNewsArticle.domain, id), id);
+			collector.emit(Arrays.asList(crawlerNewsArticle.source, id), id);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 		}
 
 	}
@@ -76,9 +74,10 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	@Override
 	public void ack(Object msgId) {
 		try {
+			mongoDBClient.markCrawlerEntryAsProcessed((String) msgId);
 			mongoDBClient.markNewsArticleAsProcessed((String) msgId);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 
@@ -87,14 +86,14 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 		try {
 			mongoDBClient.unmarkCrawlerArticleAsInProcess((String) msgId);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 		}
 	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(
-				new Fields(NamesUtil.TUPLE_FIELD_NAME_DOMAIN, NamesUtil.TUPLE_FIELD_NAME_ID));
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_SOURCE, NamesUtil.TUPLE_FIELD_NAME_ID));
 	}
 
 	@Override

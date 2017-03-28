@@ -1,9 +1,12 @@
 package ru.nlp_project.story_line2.server_storm.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -25,12 +28,24 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
 public class ElasticsearchManagerImplIntgrTest {
 
 	private static IConfigurationManager configurationManager;
+	private static String parserConfigDir;
 	private ElasticsearchManagerImpl testable;
+
+
 
 	@BeforeClass
 	public static void setUpClass() throws IOException {
-		configurationManager = new ConfigurationManagerImpl();
+		parserConfigDir = TestUtils.unzipClasspathToDir(
+				"ru/nlp_project/story_line2/server_storm/impl/TextAnalyserImplTest.zip", null);
+		configurationManager = new ConfigurationManagerImpl(null);
 		configurationManager.initialize();
+
+	}
+
+
+	@AfterClass
+	public static void tearDownClass() throws IOException {
+		FileUtils.deleteQuietly(new File(parserConfigDir));
 	}
 
 
@@ -44,6 +59,7 @@ public class ElasticsearchManagerImplIntgrTest {
 	// curl -XGET
 	// 'localhost:9200/story_line2_read_index/news_article/_search?q=facts.geo.fact_key:GE*'
 	@Test
+	@Ignore
 	public void testCheckIndex() throws Exception {
 		NewsArticle newsArticle = new NewsArticle();
 		List<NewsArticleFact> list = Arrays.asList(new NewsArticleFact(0, "GEO", 2, "Ашхабад"),

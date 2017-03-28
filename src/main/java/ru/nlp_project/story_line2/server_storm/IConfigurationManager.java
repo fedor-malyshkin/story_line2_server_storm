@@ -4,9 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public interface IConfigurationManager {
-
-	public final static String CONFIGURATION_SYSTEM_KEY =
-			"ru.nlp_project.story_line2.server_storm.config";
+	public final static String STORM_CONFIG_KEY =
+			"story_line2.server_storm.config";
 
 	// To ignore any unknown properties in JSON input without exception:
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -30,7 +29,4 @@ public interface IConfigurationManager {
 	MasterConfiguration getMasterConfiguration();
 
 	void initialize();
-
-	String getAbsolutePath(String grammarPath);
-
 }

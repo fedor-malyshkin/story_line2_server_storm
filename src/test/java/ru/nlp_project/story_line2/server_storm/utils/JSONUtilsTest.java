@@ -27,8 +27,8 @@ public class JSONUtilsTest {
 		CrawlerNewsArticle result = JSONUtils.deserialize(json, CrawlerNewsArticle.class);
 		assertNotNull(result);
 		assertEquals("Title!!!", result.title);
-		assertEquals("some_domain", result.domain);
-		assertEquals(2000, result.creationDate.getTime());
+		assertEquals("some_domain", result.source);
+		assertEquals(2000, result.publicationDate.getTime());
 	}
 
 	@Test

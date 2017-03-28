@@ -2,6 +2,8 @@ package ru.nlp_project.story_line2.server_storm.dagger;
 
 import javax.inject.Singleton;
 
+import com.codahale.metrics.MetricRegistry;
+
 import dagger.Module;
 import dagger.Provides;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
@@ -14,7 +16,19 @@ import ru.nlp_project.story_line2.server_storm.impl.MongoDBClientImpl;
 import ru.nlp_project.story_line2.server_storm.impl.TextAnalyserImpl;
 
 @Module
-public class ApplicationModule {
+public class ServerStormModule {
+
+	private String configurationUrl = null;
+	private MetricRegistry metricRegistry = null;
+
+
+	public ServerStormModule(String configurationUrl, MetricRegistry metricRegistry) {
+		super();
+		this.configurationUrl = configurationUrl;
+		this.metricRegistry = metricRegistry;
+	}
+
+
 	@Provides
 	@Singleton
 	public IMongoDBClient provideMongoDBClient(MongoDBClientImpl instance) {
@@ -25,7 +39,8 @@ public class ApplicationModule {
 
 	@Provides
 	@Singleton
-	IConfigurationManager provideConfigurationManager(ConfigurationManagerImpl instance) {
+	IConfigurationManager provideConfigurationManager() {
+		ConfigurationManagerImpl instance = new ConfigurationManagerImpl(configurationUrl);
 		instance.initialize();
 		return instance;
 	}
@@ -36,14 +51,14 @@ public class ApplicationModule {
 		instance.initialize();
 		return instance;
 	}
-	
+
 	@Provides
 	@Singleton
 	public ISearchManager provideSearchManager(ElasticsearchManagerImpl instance) {
 		instance.initialize();
 		return instance;
 	}
-	
+
 
 
 }

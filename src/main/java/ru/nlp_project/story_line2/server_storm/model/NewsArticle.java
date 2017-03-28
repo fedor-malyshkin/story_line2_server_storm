@@ -23,14 +23,16 @@ public class NewsArticle {
 	}
 
 	protected void clone(CrawlerNewsArticle other) {
-		this.crawler_id = other._id;
-		this.creationDate = new Date(other.creationDate.getTime());
-		this.date = new Date(other.date.getTime());
+		this.crawlerId = other._id;
+		this.creationDate = new Date();
+		this.publicationDate = new Date(other.publicationDate.getTime());
 		this.content = other.content;
 		this.path = other.path;
-		this.domain = other.domain;
+		this.source = other.source;
 		this.title = other.title;
 		this.url = other.url;
+		this.imageUrl = other.imageUrl;
+		this.imageData = other.imageData;
 	}
 
 	/**
@@ -44,17 +46,12 @@ public class NewsArticle {
 	 * Crawler "news" record id
 	 */
 	@JsonProperty("crawler_id")
-	public Id crawler_id;
+	public Id crawlerId;
 	/**
 	 * фактическая дата записи в БД
 	 */
 	@JsonProperty("creation_date")
-	public Date creationDate = new Date(0);
-	/**
-	 * дата новости
-	 */
-	@JsonProperty("date")
-	public Date date;
+	public Date creationDate = null;
 	/**
 	 * текст новости/статьи
 	 */
@@ -66,11 +63,6 @@ public class NewsArticle {
 	@JsonProperty("path")
 	public String path;
 	/**
-	 * домен сайта (без протокола)
-	 */
-	@JsonProperty("domain")
-	public String domain;
-	/**
 	 * заголовок новости/статьи
 	 */
 	@JsonProperty("title")
@@ -80,18 +72,29 @@ public class NewsArticle {
 	 */
 	@JsonProperty("url")
 	public String url;
+	/**
+	 * дата новости
+	 */
+	@JsonProperty("publication_date")
+	public Date publicationDate;
+	/**
+	 * домен сайта (без протокола)
+	 */
+	@JsonProperty("source")
+	public String source;
+	/**
+	 * ссылка на страницу
+	 */
+	@JsonProperty("image_url")
+	public String imageUrl;
+
+	@JsonProperty("image_data")
+	public byte[] imageData;
+
+
 
 	@JsonInclude(value = Include.NON_NULL)
 	@JsonProperty("facts")
 	public Map<String, List<NewsArticleFact>> facts = new HashedMap<>();
-
-	@Override
-	public String toString() {
-		return "NewsArticle [_id=" + _id + ", crawler_id=" + crawler_id + ", creationDate="
-				+ creationDate + ", date=" + date + ", content=" + content + ", path=" + path
-				+ ", domain=" + domain + ", title=" + title + ", url=" + url + ", facts=" + facts
-				+ "]";
-	}
-
 
 }

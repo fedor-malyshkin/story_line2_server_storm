@@ -44,15 +44,11 @@ public class TextAnalyserImpl implements ITextAnalyser {
 	}
 
 	public void initialize() {
-		String confPath = System.getProperty(IConfigurationManager.CONFIGURATION_SYSTEM_KEY);
-		System.setProperty(
-				ru.nlp_project.story_line2.glr_parser.IConfigurationManager.CONFIGURATION_SYSTEM_KEY,
-				confPath);
-
 		myLogger = new GLRLoggreImpl();
 		myFactListener = new FactListenerImpl();
 		try {
-			parser = GLRParser.newInstance(myLogger, myFactListener, initMorph, multiThread);
+			// TODO: set correct configuration
+			parser = GLRParser.newInstance(null, myLogger, myFactListener, initMorph, multiThread);
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}

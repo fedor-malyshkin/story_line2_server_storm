@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
-import ru.nlp_project.story_line2.server_storm.dagger.ApplicationBuilder;
+import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
@@ -23,7 +23,7 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 
 	private static final long serialVersionUID = -7621987543099710796L;
 	private OutputCollector collector;
-	private Logger logger;
+	private Logger log;
 	@Inject
 	public IMongoDBClient mongoDBClient;
 	@Inject
@@ -34,8 +34,8 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;
-		logger = LoggerFactory.getLogger(this.getClass());
-		ApplicationBuilder.getBuilder().inject(this);
+		log = LoggerFactory.getLogger(this.getClass());
+		ServerStormBuilder.getBuilder(stormConf).inject(this);
 	}
 
 	@Override
@@ -45,7 +45,7 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 			NewsArticle newsArticle = mongoDBClient.getNewsArticle(objectId);
 			searchManager.index(newsArticle);
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			log.error(e.getMessage(), e);
 			collector.fail(input);
 		}
 		// ack prev tuples

@@ -2,14 +2,10 @@ package ru.nlp_project.story_line2.server_storm.impl;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.ne;
-
-import java.util.Date;
 
 import javax.inject.Inject;
 
-import org.bson.BsonDateTime;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.ObjectId;
@@ -43,13 +39,13 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
  */
 public class MongoDBClientImpl implements IMongoDBClient {
 	public static final String FIELD_ID = "_id";
-	public static final String NEWS_ARTICLE_FIELD_PROCESSED = "processed";
-	public static final String NEWS_ARTICLE_FIELD_IN_PROCESS = "in_process";
+	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
+	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
 	@Inject
 	public IConfigurationManager configurationManager;
 	private MongoClient client;
-	private Logger logger;
-	private MongoCollection<DBObject> serverStormCollection;
+	private Logger log;
+	private MongoCollection<DBObject> storylineCollection;
 	private MongoCollection<DBObject> crawlerCollection;
 	private FindOneAndUpdateOptions afterFindOneAndUpdateOptions;
 	private UpdateOptions upsertUpdateOptions;
@@ -57,15 +53,15 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	@Inject
 	public MongoDBClientImpl() {
-		logger = LoggerFactory.getLogger(this.getClass());
+		log = LoggerFactory.getLogger(this.getClass());
 	}
 
 
-	private MongoCollection<DBObject> getCrawlerNewsCollection() throws Exception {
+	private MongoCollection<DBObject> getCrawlerCollection() throws Exception {
 		if (crawlerCollection == null) {
-			MongoDatabase database = client.getDatabase(NamesUtil.CRAWLER_MONGODB_DATABASE_NAME);
-			crawlerCollection = database
-					.getCollection(NamesUtil.CRAWLER_MONGODB_NEWS_COLLECTION_NAME, DBObject.class);
+			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_CRAWLER_DATABASE_NAME);
+			crawlerCollection = database.getCollection(NamesUtil.MONGODB_CRAWLER_COLLECTION_NAME,
+					DBObject.class);
 		}
 		return crawlerCollection;
 	}
@@ -73,7 +69,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	@Override
 	public NewsArticle getNewsArticle(String objectId) throws Exception {
-		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollection();
+		MongoCollection<DBObject> serverCollections = getStorylineCollection();
 		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
 		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
 		DBObject dbObject = iter.first();
@@ -82,31 +78,27 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 
 	@Override
-	public CrawlerNewsArticle getNextUnprocessedCrawlerArticle(Date lastEmittedDate)
-			throws Exception {
-		MongoCollection<DBObject> collection = getCrawlerNewsCollection();
-		if (null == lastEmittedDate)
-			lastEmittedDate = new Date(1);
-		// > lastEmittedDate.getTime() AND in_processed != true AND proceed != true
-		Bson filter = and(gt("date", new BsonDateTime(lastEmittedDate.getTime())),
-				ne(NEWS_ARTICLE_FIELD_IN_PROCESS, true), ne(NEWS_ARTICLE_FIELD_PROCESSED, true));
+	public CrawlerNewsArticle getNextUnprocessedCrawlerEntry() throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		// in_processed != true AND proceed != true
+		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
+				ne(CRAWLER_ENTRY_FIELD_PROCESSED, true));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
-				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_IN_PROCESS + "' : true}}");
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
 		if (item != null)
 			return BSONUtils.deserialize(item, CrawlerNewsArticle.class);
 		return null;
 	}
 
-	private MongoCollection<DBObject> getServerStormNewsArticleCollection() throws Exception {
-		if (serverStormCollection == null) {
-			MongoDatabase database =
-					client.getDatabase(NamesUtil.SERVER_STORM_MONGODB_DATABASE_NAME);
-			serverStormCollection = database.getCollection(
-					NamesUtil.SERVER_STORM_MONGODB_NEWS_ARTICLE_COLLECTION_NAME, DBObject.class);
+	private MongoCollection<DBObject> getStorylineCollection() throws Exception {
+		if (storylineCollection == null) {
+			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_STORYLINE_DATABASE_NAME);
+			storylineCollection = database
+					.getCollection(NamesUtil.MONGODB_STORYLINE_COLLECTION_NAME, DBObject.class);
 		}
-		return serverStormCollection;
+		return storylineCollection;
 	}
 
 
@@ -129,18 +121,12 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	@Override
 	public void markNewsArticleAsProcessed(String msgId) throws Exception {
-		MongoCollection<DBObject> serverCollections = getServerStormNewsArticleCollection();
-		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollection();
+		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
 		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
 		// { "$set" : { "in_process" : "true"}}
 		Bson setProcessed =
-				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_PROCESSED + "' : true}}");
-		DBObject news = serverCollections.findOneAndUpdate(filter, setProcessed,
-				afterFindOneAndUpdateOptions);
-		// mark crawler news as processed
-		ObjectId crawlerId = (ObjectId) news.get("crawler_id");
-		filter = eq(FIELD_ID, crawlerId);
-		crawlerCollections.findOneAndUpdate(filter, setProcessed);
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED + "' : true}}");
+		storylineCollections.updateOne(filter, setProcessed);
 	}
 
 	@Override
@@ -150,16 +136,16 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	@Override
 	public void unmarkCrawlerArticleAsInProcess(String msgId) throws Exception {
-		MongoCollection<DBObject> crawlerCollections = getCrawlerNewsCollection();
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
 		Bson setProcessed =
-				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_IN_PROCESS + "' : false}}");
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : false}}");
 		crawlerCollections.findOneAndUpdate(filter, setProcessed);
 	}
 
 	@Override
 	public void updateNewsArticle(NewsArticle newsArticle) throws Exception {
-		MongoCollection<DBObject> serverCollection = getServerStormNewsArticleCollection();
+		MongoCollection<DBObject> serverCollection = getStorylineCollection();
 		Bson filter = eq(FIELD_ID, BSONUtils.createBsonObjectId(newsArticle._id));
 		BasicDBObject dbObject = BSONUtils.serialize(newsArticle);
 		Bson newDocument = new Document("$set", dbObject);
@@ -171,14 +157,35 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		NewsArticle newsArticle = new NewsArticle(crawlerNewsArticle);
 		BasicDBObject dbObject;
 		dbObject = BSONUtils.serialize(newsArticle);
-		MongoCollection<DBObject> collection = getServerStormNewsArticleCollection();
-		Bson filter = and(eq("domain", newsArticle.domain), eq("path", newsArticle.path));
+
+
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		Bson filter = and(eq("source", newsArticle.source), eq("path", newsArticle.path));
 		Bson newDocument = new Document("$set", dbObject);
-		DBObject findOneAndUpdate = collection.findOneAndUpdate(filter, newDocument,
+		DBObject newRecord = collection.findOneAndUpdate(filter, newDocument,
 				upsertAfterFindOneAndUpdateOptions);
-		ObjectId oid = (ObjectId) findOneAndUpdate.get(FIELD_ID);
+		ObjectId oid = (ObjectId) newRecord.get(FIELD_ID);
+
 		return oid.toHexString();
 	}
+
+
+	@Override
+	public void markCrawlerEntryAsProcessed(String msgId) throws Exception {
+		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
+		FindIterable<DBObject> news = storylineCollections.find(filter).limit(1);
+		DBObject object = news.first();
+		// mark crawler news as processed
+		ObjectId crawlerId = (ObjectId) object.get("crawler_id");
+		filter = eq(FIELD_ID, crawlerId);
+		// { "$set" : { "in_process" : "true"}}
+		Bson setProcessed =
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED + "' : true}}");
+		crawlerCollections.findOneAndUpdate(filter, setProcessed);
+	}
+
 
 
 }

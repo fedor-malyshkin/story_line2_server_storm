@@ -10,38 +10,36 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CrawlerNewsArticle {
 
-	public CrawlerNewsArticle() {
-		super();
-	}
-
-	public CrawlerNewsArticle(Date creationDate, Date date, String content, String path,
-			String domain, String title, String url) {
-		super();
-		this.creationDate = creationDate;
-		this.date = date;
-		this.content = content;
-		this.path = path;
-		this.domain = domain;
-		this.title = title;
-		this.url = url;
-	}
-
 	/**
 	 * Record id
 	 */
-	@JsonInclude(value=Include.NON_NULL)
+	@JsonInclude(value = Include.NON_NULL)
 	@JsonProperty("_id")
 	public Id _id;
+
 	/**
-	 * фактическая дата записи в БД
+	 * Признак обработки сообщения.
 	 */
-	@JsonProperty("creation_date")
-	public Date creationDate = new Date(0);
+	@JsonProperty("processed")
+	public boolean processed = false;
+
+	/**
+	 * Признак обработки сообщения.
+	 */
+	@JsonProperty("in_process")
+	public boolean inProcess = false;
+	/**
+	 * фактическая дата записис в БД
+	 */
+	@JsonProperty("processing_date")
+	public Date processingDate = null;
+
+
 	/**
 	 * дата новости
 	 */
-	@JsonProperty("date")
-	public Date date;
+	@JsonProperty("publication_date")
+	public Date publicationDate;
 	/**
 	 * текст новости/статьи
 	 */
@@ -55,8 +53,8 @@ public class CrawlerNewsArticle {
 	/**
 	 * домен сайта (без протокола)
 	 */
-	@JsonProperty("domain")
-	public String domain;
+	@JsonProperty("source")
+	public String source;
 	/**
 	 * заголовок новости/статьи
 	 */
@@ -67,15 +65,16 @@ public class CrawlerNewsArticle {
 	 */
 	@JsonProperty("url")
 	public String url;
-	
 	/**
-	 * Признак обработки сообщения.
+	 * ссылка на страницу
 	 */
-	@JsonProperty("processed")
-	public boolean processed = false;
-	/**
-	 * Признак обработки сообщения.
-	 */
-	@JsonProperty("in_process")
-	public boolean inProcess = false;
+	@JsonProperty("image_url")
+	public String imageUrl;
+
+	@JsonProperty("image_data")
+	public byte[] imageData;
+
+	public CrawlerNewsArticle() {
+		super();
+	}
 }

@@ -7,7 +7,6 @@ import java.util.Collections;
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
@@ -19,9 +18,9 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
+import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
-import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {
@@ -49,7 +48,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String template = getTemplateFromClasspath(CP_TEMPLATE_CREATE_INDEX);
 		template = String.format(template, INDEX_TYPE_NEWS_ARTICLE);
 		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
-		restClient.performRequest(REQUEST_METHOD_PUT,  "/"+indexName,
+		restClient.performRequest(REQUEST_METHOD_PUT, "/" + indexName,
 				Collections.<String, String>emptyMap(), entity);
 
 
@@ -93,8 +92,8 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
 		Response indexResponse = restClient.performRequest(REQUEST_METHOD_PUT, endpoint,
 				Collections.<String, String>emptyMap(), entity);
-		String response = indexResponse.getEntity().toString();
-		Header[] headers = indexResponse.getHeaders();
+		// String response = indexResponse.getEntity().toString();
+		// Header[] headers = indexResponse.getHeaders();
 	}
 
 	public void initialize() {
@@ -147,7 +146,5 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			}
 
 	}
-
-
 
 }
