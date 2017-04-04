@@ -20,6 +20,7 @@ import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
+@SuppressWarnings("unused")
 public class TextProcessingBolt implements IRichBolt {
 
 	@Inject
@@ -59,6 +60,7 @@ public class TextProcessingBolt implements IRichBolt {
 		// ack prev tuples
 		collector.ack(input);
 	}
+
 
 	private void collectExtractedFacts(NewsArticle newsArticle) {
 		// Map<String, List<NewsArticleFact>> facts = new HashMap<>();

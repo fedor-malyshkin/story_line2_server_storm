@@ -1,8 +1,8 @@
 {
-    "settings" : {
-    },
+	"settings" : {
+	},
 	"mappings" : {
-		"%s" : {
+		"news_article" : {
 			"dynamic_templates": [
 				{
 					"fact_key": {
@@ -42,7 +42,7 @@
 					}
 				}
 			],
-			"include_in_all": false, 
+			"include_in_all": false,
 			"properties" : {
 				"crawler_id" : { "type" : "keyword" },
 				"creation_date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis" },
@@ -50,8 +50,8 @@
 				"content" : { "type" : "text",  "include_in_all": true },
 				"path" : { "type" : "keyword" },
 				"source" : { "type" : "keyword"},
-				"image_url" : { "index" : "no"},
-				"image_data" : { "index" : "no"},
+				"image_url" : { "enabled": false },
+				"image_data" : { "enabled": false },
 				"title" : { "type" : "text", "include_in_all": true},
 				"url" : { "type" : "keyword"}
 			}

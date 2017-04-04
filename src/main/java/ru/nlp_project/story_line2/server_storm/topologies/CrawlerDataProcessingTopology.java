@@ -3,14 +3,12 @@ package ru.nlp_project.story_line2.server_storm.topologies;
 import java.io.IOException;
 
 import org.apache.storm.Config;
-import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
 import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.utils.Utils;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
@@ -67,23 +65,4 @@ public class CrawlerDataProcessingTopology {
 				.shuffleGrouping(BOLT_TEXT_PROCESSOR);
 		return builder.createTopology();
 	}
-
-	private static void deployLocal(String configUrl) {
-		Config conf = new Config();
-		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
-		conf.setDebug(true);
-		conf.setNumWorkers(1);
-		// время обработки не более 5 минут
-		conf.setMessageTimeoutSecs(60 * 5);
-
-
-		LocalCluster cluster = new LocalCluster();
-		cluster.submitTopology(TOPOLOGY_NAME, conf, createTopology());
-		Utils.sleep(999_999_999);
-		cluster.killTopology(TOPOLOGY_NAME);
-		cluster.shutdown();
-
-
-	}
-
 }

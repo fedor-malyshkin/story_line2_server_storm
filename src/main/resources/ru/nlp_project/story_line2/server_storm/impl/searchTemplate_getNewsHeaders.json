@@ -1,0 +1,8 @@
+{
+    "_source": [ "publication_date", "title", "path", "source", "image_url", "url" ],
+ 	"sort" : [{ "publication_date" : {"order" : "desc"}}],    
+    "query" : {
+        "term" : { "source" : "${source}" }
+        
+    }
+}

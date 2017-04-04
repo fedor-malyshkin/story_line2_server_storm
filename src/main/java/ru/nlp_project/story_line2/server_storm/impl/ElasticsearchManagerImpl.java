@@ -2,11 +2,18 @@ package ru.nlp_project.story_line2.server_storm.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
@@ -25,19 +32,21 @@ import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {
 
-
+	private static final String CLASSPATH_PREFIX = "ru/nlp_project/story_line2/server_storm/impl/";
 	private static final String REQUEST_METHOD_PUT = "PUT";
 	private static final String REQUST_METHOD_HEAD = "HEAD";
 	private static final int RESPONSE_SUCCESS = 200;
-	private static final String CP_TEMPLATE_CREATE_INDEX = "elasticsearchCreateIndex.json";
+	private static final String CP_INDEX_MAPPING = "indexMapping.json";
 	private static final String INDEX_TYPE_NEWS_ARTICLE = "news_article";
+	private static final Charset UTF8 = Charset.forName("UTF-8");
+
 	@Inject
 	public IConfigurationManager configurationManager;
 	private Logger logger;
 	private boolean initialized = false;
 	private RestClient restClient;
-	private String readIndex;
-	private String writeIndex;
+	protected String readIndex;
+	protected String writeIndex;
 
 	@Inject
 	public ElasticsearchManagerImpl() {
@@ -45,13 +54,11 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 	private void createIndex(String indexName) throws IOException {
-		String template = getTemplateFromClasspath(CP_TEMPLATE_CREATE_INDEX);
+		String template = getStringFromClasspath(CP_INDEX_MAPPING);
 		template = String.format(template, INDEX_TYPE_NEWS_ARTICLE);
 		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
 		restClient.performRequest(REQUEST_METHOD_PUT, "/" + indexName,
 				Collections.<String, String>emptyMap(), entity);
-
-
 	}
 
 	private void createIndexAlias(String aliasName, String realName) throws IOException {
@@ -62,25 +69,12 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 
-	/**
-	 * Загружить текстовый шаблон из classpath'а.
-	 * 
-	 * @param classpath
-	 * @return
-	 * @throws IOException
-	 */
-	private String getTemplateFromClasspath(String classpath) throws IOException {
-		InputStream stream = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream("ru/nlp_project/story_line2/server_storm/impl/" + classpath);
-		return IOUtils.toString(stream);
-	}
-
 	@Override
 	public void index(NewsArticle newsArticle) throws Exception {
 		if (newsArticle._id == null || newsArticle._id.value == null)
 			throw new IllegalArgumentException("id in object must be set to index it.");
-		initilizeIfNecessary();
 
+		RestClient elClient = getRestClient();
 		String endpoint =
 				String.format("/%s/%s/%s", writeIndex, INDEX_TYPE_NEWS_ARTICLE, newsArticle._id);
 		// set id to null to escape exception from ES "is a metadata field and cannot be added
@@ -90,10 +84,17 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String json = JSONUtils.serialize(newsArticle);
 		newsArticle._id = _id;
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
-		Response indexResponse = restClient.performRequest(REQUEST_METHOD_PUT, endpoint,
+		// PUT /writeIndex/INDEX_TYPE_NEWS_ARTICLE/ID
+		elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
 				Collections.<String, String>emptyMap(), entity);
 		// String response = indexResponse.getEntity().toString();
 		// Header[] headers = indexResponse.getHeaders();
+	}
+
+	private RestClient getRestClient() {
+		if (!initialized)
+			initialize();
+		return restClient;
 	}
 
 	public void initialize() {
@@ -123,15 +124,11 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 				configuration.elasticsearchRealIndex);
 	}
 
-	private void initilizeIfNecessary() {
-		if (!initialized)
-			initialize();
-	}
-
 	private boolean isIndexExists(String indexName) throws IOException {
+		// HEAD /index
 		Response response = restClient.performRequest(REQUST_METHOD_HEAD, indexName,
 				Collections.<String, String>emptyMap());
-		if (response.getStatusLine().getStatusCode() != RESPONSE_SUCCESS)
+		if (getCode(response) != RESPONSE_SUCCESS)
 			return false;
 		return true;
 	}
@@ -146,5 +143,115 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			}
 
 	}
+
+
+
+	@Override
+	public List<Map<String, Object>> getNewsHeaders(String source, int count) {
+		String template = getStringFromClasspath("searchTemplate_getNewsHeaders.json");
+		Map<String, Object> subst = new HashMap<>();
+		subst.put("source", source);
+		String requestData = fillTemplate(template, subst);
+
+		Response response;
+		try {
+			response = searchNewsArticle(requestData, count, null);
+		} catch (IOException e) {
+			throw new IllegalStateException(
+					"Exception while search news headers: " + e.getMessage());
+		}
+		if (getCode(response) == 200)
+			return extractResults(getContent(response));
+		else
+			throw new IllegalStateException("Unexpected response: " + response);
+	}
+
+	protected String fillTemplate(String template, Map<String, Object> subst) {
+		StrSubstitutor sub = new StrSubstitutor(subst);
+		return sub.replace(template);
+	}
+
+	protected String getStringFromClasspath(String classpath) {
+		InputStream stream = Thread.currentThread().getContextClassLoader()
+				.getResourceAsStream(CLASSPATH_PREFIX + classpath);
+		if (stream == null)
+			throw new IllegalStateException("Illegal classpath: " + CLASSPATH_PREFIX + classpath);
+		try {
+			return IOUtils.toString(stream, UTF8);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	protected String getContent(Response response) {
+		InputStream stream = null;
+		try {
+			stream = response.getEntity().getContent();
+			return IOUtils.toString(stream, UTF8);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		} finally {
+			if (stream != null)
+				IOUtils.closeQuietly(stream);
+		}
+	}
+
+	protected int getCode(Response response) {
+		return response.getStatusLine().getStatusCode();
+	}
+
+	protected Response searchNewsArticle(String requestData, Integer size, Integer timeout)
+			throws IOException {
+
+		RestClient elClient = getRestClient();
+
+		String endpoint = formatSearchEndpoint(size, timeout);
+
+
+		NStringEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
+		// PUT /writeIndex/newArticle/ID
+		return elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
+				Collections.<String, String>emptyMap(), entity);
+	}
+
+	protected String formatSearchEndpoint(Integer size, Integer timeout) {
+		StringBuilder params = new StringBuilder();
+		if (size != null && timeout != null)
+			params.append("size=").append(size.intValue()).append("&").append("timeout=")
+					.append(timeout.intValue()).append("ms");
+		else if (size != null)
+			params.append("size=").append(size);
+		else if (timeout != null)
+			params.append("timeout=").append(timeout.intValue()).append("ms");
+		StringBuilder request = new StringBuilder(
+				String.format("/%s/%s/_search", readIndex, INDEX_TYPE_NEWS_ARTICLE));
+		if (params.length() > 0)
+			request.append("?").append(params);
+		return request.toString();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Map<String, Object>> extractResults(String json) {
+		List<Map<String, Object>> result = new ArrayList<>();
+
+
+		Map<String, Object> map = JSONUtils.deserialize(json, HashMap.class);
+		Map<String, Object> hits1 = (Map<String, Object>) map.get("hits");
+		int total = (int) hits1.get("total");
+		if (total == 0)
+			return Collections.emptyList();
+		Collection<Map<String, Object>> hits2 = (Collection<Map<String, Object>>) hits1.get("hits");
+
+		for (Map<String, Object> entry : hits2) {
+			Map<String, Object> arrEntry = (Map<String, Object>) entry.get("_source");
+			String id = (String) entry.get("_id");
+			arrEntry.put("_id", id);
+			result.add(arrEntry);
+		}
+		return result;
+
+	}
+
+
 
 }

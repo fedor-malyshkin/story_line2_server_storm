@@ -59,6 +59,10 @@ public class ServerStormModule {
 		return instance;
 	}
 
-
+	@Provides
+	@Singleton
+	public MetricRegistry provideMetricRegistry() {
+		return metricRegistry;
+	}
 
 }

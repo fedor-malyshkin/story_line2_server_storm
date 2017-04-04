@@ -20,6 +20,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 
@@ -117,6 +118,72 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		// update: upsert
 		this.upsertUpdateOptions = new UpdateOptions();
 		this.upsertUpdateOptions.upsert(true);
+
+		createCrawlerIndexes();
+		createStorylineIndexes();
+	}
+
+	private void createCrawlerIndexes() {
+		try {
+			MongoCollection<DBObject> collection = getCrawlerCollection();
+			// in_process
+
+			BasicDBObject obj = new BasicDBObject();
+			obj.put(CRAWLER_ENTRY_FIELD_IN_PROCESS, 1);
+			// bckg
+			IndexOptions ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+			// processed
+			obj = new BasicDBObject();
+			obj.put(CRAWLER_ENTRY_FIELD_PROCESSED, 1);
+			// bckg
+			ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+			// _id
+			obj = new BasicDBObject();
+			obj.put(FIELD_ID, 1);
+			// bckg
+			ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+		} catch (Exception e) {
+			log.error("Error while creating index: '{}'", e.getMessage(), e);
+		}
+
+	}
+
+	
+	private void createStorylineIndexes() {
+		try {
+			MongoCollection<DBObject> collection = getStorylineCollection();
+			// source
+			BasicDBObject obj = new BasicDBObject();
+			obj.put("source", 1);
+			// bckg
+			IndexOptions ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+			// path
+			obj = new BasicDBObject();
+			obj.put("path", 1);
+			// bckg
+			ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+	
+			// _id
+			obj = new BasicDBObject();
+			obj.put(FIELD_ID, 1);
+			// bckg
+			ndx = new IndexOptions();
+			ndx.background(true);
+			collection.createIndex(obj, ndx);
+		} catch (Exception e) {
+			log.error("Error while creating index: '{}'", e.getMessage(), e);
+		}
+
 	}
 
 	@Override

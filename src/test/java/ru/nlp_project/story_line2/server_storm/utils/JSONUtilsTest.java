@@ -2,6 +2,7 @@ package ru.nlp_project.story_line2.server_storm.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class JSONUtilsTest {
 	private String getStringFromCP(String path) throws IOException {
 		InputStream resourceAsStream =
 				Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
-		return IOUtils.toString(resourceAsStream);
+		return IOUtils.toString(resourceAsStream, Charset.defaultCharset());
 	}
 
 }
