@@ -21,10 +21,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.type.ArrayType;
-import com.fasterxml.jackson.databind.type.TypeBindings;
-import com.fasterxml.jackson.databind.type.TypeFactory;
-
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
@@ -94,7 +90,7 @@ public class ServerWebRequestProcessingTopologyTest {
 
 		Assertions.assertThat(execute).isNotNull();
 		String res = removeSurroundingBrackets(execute);
-		
+
 		List<Map<String, Object>> list = JSONUtils.deserialize(res, ArrayList.class);
 		Map<String, Object> map = list.get(1);
 		Assertions.assertThat(map.get("_id")).isEqualTo(2);

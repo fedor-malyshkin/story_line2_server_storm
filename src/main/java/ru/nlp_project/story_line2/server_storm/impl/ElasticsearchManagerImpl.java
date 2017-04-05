@@ -34,6 +34,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	private static final String CLASSPATH_PREFIX = "ru/nlp_project/story_line2/server_storm/impl/";
 	private static final String REQUEST_METHOD_PUT = "PUT";
+	private static final String REQUEST_METHOD_GET = "GET";
 	private static final String REQUST_METHOD_HEAD = "HEAD";
 	private static final int RESPONSE_SUCCESS = 200;
 	private static final String CP_INDEX_MAPPING = "indexMapping.json";
@@ -202,32 +203,27 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	protected Response searchNewsArticle(String requestData, Integer size, Integer timeout)
 			throws IOException {
-
 		RestClient elClient = getRestClient();
-
-		String endpoint = formatSearchEndpoint(size, timeout);
-
-
+		String endpoint = formatSearchEndpoint();
+		Map<String, String> params = formatSearchParams(size, timeout);
 		NStringEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
 		// PUT /writeIndex/newArticle/ID
-		return elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
-				Collections.<String, String>emptyMap(), entity);
+		return elClient.performRequest(REQUEST_METHOD_GET, endpoint, params, entity);
 	}
 
-	protected String formatSearchEndpoint(Integer size, Integer timeout) {
-		StringBuilder params = new StringBuilder();
-		if (size != null && timeout != null)
-			params.append("size=").append(size.intValue()).append("&").append("timeout=")
-					.append(timeout.intValue()).append("ms");
-		else if (size != null)
-			params.append("size=").append(size);
-		else if (timeout != null)
-			params.append("timeout=").append(timeout.intValue()).append("ms");
-		StringBuilder request = new StringBuilder(
-				String.format("/%s/%s/_search", readIndex, INDEX_TYPE_NEWS_ARTICLE));
-		if (params.length() > 0)
-			request.append("?").append(params);
-		return request.toString();
+	private Map<String, String> formatSearchParams(Integer size, Integer timeout) {
+		if (size == null && timeout == null)
+			return Collections.emptyMap();
+		Map<String, String> result = new HashMap<>();
+		if (size != null)
+			result.put("size", size.toString());
+		if (timeout != null)
+			result.put("timeout", timeout.toString() + "ms");
+		return result;
+	}
+
+	protected String formatSearchEndpoint() {
+		return String.format("/%s/%s/_search", readIndex, INDEX_TYPE_NEWS_ARTICLE);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -250,6 +246,26 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		}
 		return result;
 
+	}
+
+	@Override
+	public List<Map<String, Object>> getNewsArticle(String id) {
+		String template = getStringFromClasspath("searchTemplate_getNewsArticle.json");
+		Map<String, Object> subst = new HashMap<>();
+		subst.put("id", id);
+		String requestData = fillTemplate(template, subst);
+
+		Response response;
+		try {
+			response = searchNewsArticle(requestData, 1, null);
+		} catch (IOException e) {
+			throw new IllegalStateException(
+					"Exception while search news headers: " + e.getMessage());
+		}
+		if (getCode(response) == 200)
+			return extractResults(getContent(response));
+		else
+			throw new IllegalStateException("Unexpected response: " + response);
 	}
 
 

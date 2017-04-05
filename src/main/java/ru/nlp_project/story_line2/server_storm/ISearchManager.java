@@ -11,4 +11,6 @@ public interface ISearchManager {
 	void index(NewsArticle newsArticle) throws Exception;
 
 	List<Map<String, Object>> getNewsHeaders(String source, int count);
+
+	List<Map<String, Object>> getNewsArticle(String id);
 }

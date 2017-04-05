@@ -38,17 +38,8 @@ public class ElasticsearchManagerImplTest {
 
 	@Test
 	public void testFormatSearchEndpoint() {
-		String endpoint = testable.formatSearchEndpoint(null, null);
+		String endpoint = testable.formatSearchEndpoint();
 		Assertions.assertThat(endpoint).isEqualTo("/story_line2_read_index/news_article/_search");
-		endpoint = testable.formatSearchEndpoint(5, 100);
-		Assertions.assertThat(endpoint)
-				.isEqualTo("/story_line2_read_index/news_article/_search?size=5&timeout=100ms");
-		endpoint = testable.formatSearchEndpoint(5, null);
-		Assertions.assertThat(endpoint)
-				.isEqualTo("/story_line2_read_index/news_article/_search?size=5");
-		endpoint = testable.formatSearchEndpoint(null, 20);
-		Assertions.assertThat(endpoint)
-				.isEqualTo("/story_line2_read_index/news_article/_search?timeout=20ms");
 	}
 
 	@Test

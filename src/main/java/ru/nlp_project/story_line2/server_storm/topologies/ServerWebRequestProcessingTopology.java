@@ -17,7 +17,6 @@ import org.apache.storm.generated.InvalidTopologyException;
 import org.apache.storm.generated.StormTopology;
 import org.apache.storm.trident.Stream;
 import org.apache.storm.trident.TridentTopology;
-import org.apache.storm.trident.operation.builtin.FilterNull;
 import org.apache.storm.tuple.Fields;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
