@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CrawlerNewsArticle {
+public class CrawlerEntry {
 
 	/**
 	 * Record id
@@ -45,6 +45,12 @@ public class CrawlerNewsArticle {
 	 */
 	@JsonProperty("content")
 	public String content;
+
+	/**
+	 * текст новости/статьи
+	 */
+	@JsonProperty("raw_content")
+	public String rawContent;
 	/**
 	 * путь внутри сайта
 	 */
@@ -71,10 +77,8 @@ public class CrawlerNewsArticle {
 	@JsonProperty("image_url")
 	public String imageUrl;
 
-	@JsonProperty("image_data")
-	public byte[] imageData;
 
-	public CrawlerNewsArticle() {
+	public CrawlerEntry() {
 		super();
 	}
 }

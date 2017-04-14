@@ -60,7 +60,6 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(new Fields());
-
 	}
 
 	@Override

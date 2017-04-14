@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
-import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class CrawlerNewsArticleReaderSpout implements IRichSpout {
@@ -59,7 +59,7 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	public void nextTuple() {
 
 		try {
-			CrawlerNewsArticle crawlerNewsArticle = mongoDBClient.getNextUnprocessedCrawlerEntry();
+			CrawlerEntry crawlerNewsArticle = mongoDBClient.getNextUnprocessedCrawlerEntry();
 			// there is no data
 			if (null == crawlerNewsArticle)
 				return;
@@ -84,7 +84,7 @@ public class CrawlerNewsArticleReaderSpout implements IRichSpout {
 	@Override
 	public void fail(Object msgId) {
 		try {
-			mongoDBClient.unmarkCrawlerArticleAsInProcess((String) msgId);
+			mongoDBClient.unmarkCrawlerEntryAsInProcess((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

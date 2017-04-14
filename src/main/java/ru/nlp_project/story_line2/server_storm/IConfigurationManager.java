@@ -10,7 +10,8 @@ public interface IConfigurationManager {
 	// To ignore any unknown properties in JSON input without exception:
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	class MasterConfiguration {
-
+		@JsonProperty("server_storm.content_extraction.script_path")
+		public String contentExtractionScriptPath;
 		@JsonProperty("server_storm.mongodb.connection_url")
 		public String mongoDBConnectionUrl;
 		@JsonProperty("server_storm.elasticsearch.hostname")

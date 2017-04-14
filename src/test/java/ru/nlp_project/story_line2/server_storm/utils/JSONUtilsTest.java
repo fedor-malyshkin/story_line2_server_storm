@@ -11,7 +11,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
-import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticleFact;
@@ -25,7 +25,7 @@ public class JSONUtilsTest {
 		String res =
 				"ru/nlp_project/story_line2/server_storm/utils/JSONUtilsTest.testJsonDeserialize_Simple.json";
 		String json = getStringFromCP(res);
-		CrawlerNewsArticle result = JSONUtils.deserialize(json, CrawlerNewsArticle.class);
+		CrawlerEntry result = JSONUtils.deserialize(json, CrawlerEntry.class);
 		assertNotNull(result);
 		assertEquals("Title!!!", result.title);
 		assertEquals("some_domain", result.source);
@@ -36,7 +36,7 @@ public class JSONUtilsTest {
 	public void testJsonSerialize_Simple() throws IOException {
 		String expectedString =
 				"ru/nlp_project/story_line2/server_storm/utils/JSONUtilsTest.testJsonSerialize_Simple.json";
-		String val = JSONUtils.serialize(new CrawlerNewsArticle());
+		String val = JSONUtils.serialize(new CrawlerEntry());
 		assertEquals(getStringFromCP(expectedString), val);
 	}
 

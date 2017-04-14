@@ -26,7 +26,7 @@ import com.mongodb.client.model.UpdateOptions;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
-import ru.nlp_project.story_line2.server_storm.model.CrawlerNewsArticle;
+import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.BSONUtils;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
@@ -79,7 +79,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 
 	@Override
-	public CrawlerNewsArticle getNextUnprocessedCrawlerEntry() throws Exception {
+	public CrawlerEntry getNextUnprocessedCrawlerEntry() throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		// in_processed != true AND proceed != true
 		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
@@ -89,7 +89,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
 		if (item != null)
-			return BSONUtils.deserialize(item, CrawlerNewsArticle.class);
+			return BSONUtils.deserialize(item, CrawlerEntry.class);
 		return null;
 	}
 
@@ -154,7 +154,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	}
 
-	
+
 	private void createStorylineIndexes() {
 		try {
 			MongoCollection<DBObject> collection = getStorylineCollection();
@@ -172,7 +172,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			ndx = new IndexOptions();
 			ndx.background(true);
 			collection.createIndex(obj, ndx);
-	
+
 			// _id
 			obj = new BasicDBObject();
 			obj.put(FIELD_ID, 1);
@@ -202,7 +202,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public void unmarkCrawlerArticleAsInProcess(String msgId) throws Exception {
+	public void unmarkCrawlerEntryAsInProcess(String msgId) throws Exception {
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
 		Bson setProcessed =
@@ -220,7 +220,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public String writeNewNewsArticle(CrawlerNewsArticle crawlerNewsArticle) throws Exception {
+	public String writeNewNewsArticle(CrawlerEntry crawlerNewsArticle) throws Exception {
 		NewsArticle newsArticle = new NewsArticle(crawlerNewsArticle);
 		BasicDBObject dbObject;
 		dbObject = BSONUtils.serialize(newsArticle);
@@ -251,6 +251,16 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		Bson setProcessed =
 				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED + "' : true}}");
 		crawlerCollections.findOneAndUpdate(filter, setProcessed);
+	}
+
+
+	@Override
+	public CrawlerEntry getCrawlerEntry(String objectId) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
+		FindIterable<DBObject> iter = collection.find(filter).limit(1);
+		DBObject dbObject = iter.first();
+		return BSONUtils.deserialize(dbObject, CrawlerEntry.class);
 	}
 
 

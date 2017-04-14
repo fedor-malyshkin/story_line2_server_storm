@@ -31,7 +31,7 @@ import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunctio
  * <p/>
  * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar
  * ru.nlp_project.story_line2.server_storm.topologies.ServerWebRequestProcessingTopology
- * http://datahouse01:9000/server_storm.yaml
+ * http://datahouse01.nlp-project.ru:9000/server_storm.yaml
  * <p/>
  * 
  * @author fedor

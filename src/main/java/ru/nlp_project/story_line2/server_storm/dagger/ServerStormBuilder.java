@@ -27,19 +27,20 @@ public class ServerStormBuilder {
 
 	@SuppressWarnings("rawtypes")
 	public static ServerStormComponent getBuilder(Map stormConf) {
+		if (testMode)
+			return DaggerServerStormTestComponent.builder()
+					.serverStormTestModule(serverStormTestModule).build();
 		if (builder == null) {
 
 			String configurationUrl =
 					(String) stormConf.get(IConfigurationManager.STORM_CONFIG_KEY);
-			if (testMode) {
-				builder = DaggerServerStormTestComponent.builder()
-						.serverStormTestModule(serverStormTestModule).build();
-			} else {
-				MetricRegistry metricRegistry = new MetricRegistry();
-				serverStormModule = new ServerStormModule(configurationUrl, metricRegistry);
-				builder = DaggerServerStormComponent.builder().serverStormModule(serverStormModule)
-						.build();
-			}
+
+
+			MetricRegistry metricRegistry = new MetricRegistry();
+			serverStormModule = new ServerStormModule(configurationUrl, metricRegistry);
+			builder = DaggerServerStormComponent.builder().serverStormModule(serverStormModule)
+					.build();
+
 		}
 		return builder;
 	}
