@@ -79,6 +79,12 @@ public class ContentExtractingBolt implements IRichBolt {
 			newsArticle.title = title;
 			newsArticle.imageUrl = imageUrl;
 			newsArticle.content = content;
+			// update crawler entry "publicationn_date"
+			if (publicationDate != null) {
+				ce.publicationDate = publicationDate;
+				mongoDBClient.updateCrawlerEntry(ce);
+			}
+
 
 			mongoDBClient.updateNewsArticle(newsArticle);
 		} catch (Exception e) {
@@ -115,6 +121,7 @@ public class ContentExtractingBolt implements IRichBolt {
 	}
 
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public void prepare(Map stormConf, TopologyContext context, OutputCollector collector) {
 		this.collector = collector;

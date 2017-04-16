@@ -14,7 +14,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.bolt.ContentExtractingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.TextProcessingBolt;
-import ru.nlp_project.story_line2.server_storm.spout.CrawlerNewsArticleReaderSpout;
+import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
 
 /**
  * <p/>
@@ -34,7 +34,7 @@ public class CrawlerDataProcessingTopology {
 	private static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
 	private static final String BOLT_CONTENT_EXTRACTOR = "content_extractor";
 	private static final String BOLT_TEXT_PROCESSOR = "text_processor";
-	private static final String SPOUT_CRAWLER_NEWS_ARTICLE_READER = "crawler_news_article_reader";
+	private static final String SPOUT_CRAWLER_ENTRY_READER = "crawler_entry_reader";
 
 	public static void main(String args[]) throws IOException, AlreadyAliveException,
 			InvalidTopologyException, AuthorizationException {
@@ -60,9 +60,9 @@ public class CrawlerDataProcessingTopology {
 
 	protected static StormTopology createTopology() {
 		TopologyBuilder builder = new TopologyBuilder();
-		builder.setSpout(SPOUT_CRAWLER_NEWS_ARTICLE_READER, new CrawlerNewsArticleReaderSpout(), 1);
-		builder.setBolt(BOLT_CONTENT_EXTRACTOR, new ContentExtractingBolt(), 1)
-				.shuffleGrouping(SPOUT_CRAWLER_NEWS_ARTICLE_READER);
+		builder.setSpout(SPOUT_CRAWLER_ENTRY_READER, new CrawlerEntryReaderSpout(), 1);
+		builder.setBolt(BOLT_CONTENT_EXTRACTOR, new ContentExtractingBolt(), 4)
+				.shuffleGrouping(SPOUT_CRAWLER_ENTRY_READER);
 		builder.setBolt(BOLT_TEXT_PROCESSOR, new TextProcessingBolt(), 1)
 				.shuffleGrouping(BOLT_CONTENT_EXTRACTOR);
 		builder.setBolt(BOLT_ELASTICSEARCH_INDEXER, new ElasticsearchIndexingBolt(), 1)

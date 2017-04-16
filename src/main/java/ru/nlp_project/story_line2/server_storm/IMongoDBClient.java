@@ -6,6 +6,9 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public interface IMongoDBClient {
 
+	CrawlerEntry getCrawlerEntry(String objectId) throws Exception;
+
+
 	/**
 	 * @param objectId
 	 * @return
@@ -13,9 +16,6 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	NewsArticle getNewsArticle(String objectId) throws Exception;
-
-
-	CrawlerEntry getCrawlerEntry(String objectId) throws Exception;
 
 	/**
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
@@ -26,6 +26,8 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	CrawlerEntry getNextUnprocessedCrawlerEntry() throws Exception;
+
+	void markCrawlerEntryAsProcessed(String msgId) throws Exception;
 
 	/**
 	 * Отметит новостную статью как обработанную.
@@ -48,6 +50,8 @@ public interface IMongoDBClient {
 	 */
 	void unmarkCrawlerEntryAsInProcess(String objectId) throws Exception;
 
+	void updateCrawlerEntry(CrawlerEntry entry) throws Exception;
+
 	/**
 	 * @param newsArticle
 	 * @throws Exception
@@ -56,14 +60,17 @@ public interface IMongoDBClient {
 	 */
 	void updateNewsArticle(NewsArticle newsArticle) throws Exception;
 
+
 	/**
-	 * @param crawlerNewsArticle
+	 * Сделать новый или найти существующий объект "NewsArticle" по данным "CrawlerEntry"
+	 * (source:path).
+	 * 
+	 * 
+	 * @param entry
 	 * @return
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	String writeNewNewsArticle(CrawlerEntry crawlerNewsArticle) throws Exception;
-
-	void markCrawlerEntryAsProcessed(String msgId) throws Exception;
+	String upsertNewsArticleByCrawlerEntry(CrawlerEntry entry) throws Exception;
 
 }

@@ -40,6 +40,7 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
  */
 public class MongoDBClientImpl implements IMongoDBClient {
 	public static final String FIELD_ID = "_id";
+	public static final String FIELD_CRAWLER_ID = "crawler_id";
 	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
 	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
 	@Inject
@@ -57,71 +58,6 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		log = LoggerFactory.getLogger(this.getClass());
 	}
 
-
-	private MongoCollection<DBObject> getCrawlerCollection() throws Exception {
-		if (crawlerCollection == null) {
-			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_CRAWLER_DATABASE_NAME);
-			crawlerCollection = database.getCollection(NamesUtil.MONGODB_CRAWLER_COLLECTION_NAME,
-					DBObject.class);
-		}
-		return crawlerCollection;
-	}
-
-
-	@Override
-	public NewsArticle getNewsArticle(String objectId) throws Exception {
-		MongoCollection<DBObject> serverCollections = getStorylineCollection();
-		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
-		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
-		DBObject dbObject = iter.first();
-		return BSONUtils.deserialize(dbObject, NewsArticle.class);
-	}
-
-
-	@Override
-	public CrawlerEntry getNextUnprocessedCrawlerEntry() throws Exception {
-		MongoCollection<DBObject> collection = getCrawlerCollection();
-		// in_processed != true AND proceed != true
-		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
-				ne(CRAWLER_ENTRY_FIELD_PROCESSED, true));
-		// { "$set" : { "in_process" : "true"}}
-		Bson update =
-				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
-		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
-		if (item != null)
-			return BSONUtils.deserialize(item, CrawlerEntry.class);
-		return null;
-	}
-
-	private MongoCollection<DBObject> getStorylineCollection() throws Exception {
-		if (storylineCollection == null) {
-			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_STORYLINE_DATABASE_NAME);
-			storylineCollection = database
-					.getCollection(NamesUtil.MONGODB_STORYLINE_COLLECTION_NAME, DBObject.class);
-		}
-		return storylineCollection;
-	}
-
-
-
-	public void initialize() {
-		MongoClientURI mongoClientURI = new MongoClientURI(
-				configurationManager.getMasterConfiguration().mongoDBConnectionUrl);
-		this.client = new MongoClient(mongoClientURI);
-		// update: get updated element
-		this.afterFindOneAndUpdateOptions = new FindOneAndUpdateOptions();
-		this.afterFindOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
-		// update: get updated element + upsert
-		this.upsertAfterFindOneAndUpdateOptions = new FindOneAndUpdateOptions();
-		this.upsertAfterFindOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
-		this.upsertAfterFindOneAndUpdateOptions.upsert(true);
-		// update: upsert
-		this.upsertUpdateOptions = new UpdateOptions();
-		this.upsertUpdateOptions.upsert(true);
-
-		createCrawlerIndexes();
-		createStorylineIndexes();
-	}
 
 	private void createCrawlerIndexes() {
 		try {
@@ -141,12 +77,11 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			ndx = new IndexOptions();
 			ndx.background(true);
 			collection.createIndex(obj, ndx);
-			// _id
+			// _id (background is not valid keyword!!!)
 			obj = new BasicDBObject();
 			obj.put(FIELD_ID, 1);
 			// bckg
 			ndx = new IndexOptions();
-			ndx.background(true);
 			collection.createIndex(obj, ndx);
 		} catch (Exception e) {
 			log.error("Error while creating index: '{}'", e.getMessage(), e);
@@ -172,18 +107,106 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			ndx = new IndexOptions();
 			ndx.background(true);
 			collection.createIndex(obj, ndx);
-
-			// _id
+			// _id (background is not valid keyword!!!)
 			obj = new BasicDBObject();
 			obj.put(FIELD_ID, 1);
 			// bckg
 			ndx = new IndexOptions();
-			ndx.background(true);
 			collection.createIndex(obj, ndx);
 		} catch (Exception e) {
 			log.error("Error while creating index: '{}'", e.getMessage(), e);
 		}
 
+	}
+
+
+	private MongoCollection<DBObject> getCrawlerCollection() throws Exception {
+		if (crawlerCollection == null) {
+			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_CRAWLER_DATABASE_NAME);
+			crawlerCollection = database.getCollection(NamesUtil.MONGODB_CRAWLER_COLLECTION_NAME,
+					DBObject.class);
+		}
+		return crawlerCollection;
+	}
+
+	@Override
+	public CrawlerEntry getCrawlerEntry(String objectId) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
+		FindIterable<DBObject> iter = collection.find(filter).limit(1);
+		DBObject dbObject = iter.first();
+		return BSONUtils.deserialize(dbObject, CrawlerEntry.class);
+	}
+
+
+
+	@Override
+	public NewsArticle getNewsArticle(String objectId) throws Exception {
+		MongoCollection<DBObject> serverCollections = getStorylineCollection();
+		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
+		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
+		DBObject dbObject = iter.first();
+		return BSONUtils.deserialize(dbObject, NewsArticle.class);
+	}
+
+	@Override
+	public CrawlerEntry getNextUnprocessedCrawlerEntry() throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		// in_processed != true AND proceed != true
+		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
+				ne(CRAWLER_ENTRY_FIELD_PROCESSED, true));
+		// { "$set" : { "in_process" : "true"}}
+		Bson update =
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
+		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
+		if (item != null)
+			return BSONUtils.deserialize(item, CrawlerEntry.class);
+		return null;
+	}
+
+
+	private MongoCollection<DBObject> getStorylineCollection() throws Exception {
+		if (storylineCollection == null) {
+			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_STORYLINE_DATABASE_NAME);
+			storylineCollection = database
+					.getCollection(NamesUtil.MONGODB_STORYLINE_COLLECTION_NAME, DBObject.class);
+		}
+		return storylineCollection;
+	}
+
+	public void initialize() {
+		MongoClientURI mongoClientURI = new MongoClientURI(
+				configurationManager.getMasterConfiguration().mongoDBConnectionUrl);
+		this.client = new MongoClient(mongoClientURI);
+		// update: get updated element
+		this.afterFindOneAndUpdateOptions = new FindOneAndUpdateOptions();
+		this.afterFindOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
+		// update: get updated element + upsert
+		this.upsertAfterFindOneAndUpdateOptions = new FindOneAndUpdateOptions();
+		this.upsertAfterFindOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
+		this.upsertAfterFindOneAndUpdateOptions.upsert(true);
+		// update: upsert
+		this.upsertUpdateOptions = new UpdateOptions();
+		this.upsertUpdateOptions.upsert(true);
+
+		createCrawlerIndexes();
+		createStorylineIndexes();
+	}
+
+	@Override
+	public void markCrawlerEntryAsProcessed(String msgId) throws Exception {
+		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
+		FindIterable<DBObject> news = storylineCollections.find(filter).limit(1);
+		DBObject object = news.first();
+		// mark crawler news as processed
+		ObjectId crawlerId = (ObjectId) object.get("crawler_id");
+		filter = eq(FIELD_ID, crawlerId);
+		// { "$set" : { "in_process" : "true"}}
+		Bson setProcessed =
+				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED + "' : true}}");
+		crawlerCollections.findOneAndUpdate(filter, setProcessed);
 	}
 
 	@Override
@@ -211,6 +234,16 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
+	public void updateCrawlerEntry(CrawlerEntry entry) throws Exception {
+		MongoCollection<DBObject> crawlerCollection = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, BSONUtils.createBsonObjectId(entry._id));
+		BasicDBObject dbObject = BSONUtils.serialize(entry);
+		Bson newDocument = new Document("$set", dbObject);
+		crawlerCollection.findOneAndUpdate(filter, newDocument);
+	}
+
+
+	@Override
 	public void updateNewsArticle(NewsArticle newsArticle) throws Exception {
 		MongoCollection<DBObject> serverCollection = getStorylineCollection();
 		Bson filter = eq(FIELD_ID, BSONUtils.createBsonObjectId(newsArticle._id));
@@ -219,48 +252,36 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		serverCollection.findOneAndUpdate(filter, newDocument);
 	}
 
-	@Override
-	public String writeNewNewsArticle(CrawlerEntry crawlerNewsArticle) throws Exception {
-		NewsArticle newsArticle = new NewsArticle(crawlerNewsArticle);
-		BasicDBObject dbObject;
-		dbObject = BSONUtils.serialize(newsArticle);
-
-
-		MongoCollection<DBObject> collection = getStorylineCollection();
-		Bson filter = and(eq("source", newsArticle.source), eq("path", newsArticle.path));
-		Bson newDocument = new Document("$set", dbObject);
-		DBObject newRecord = collection.findOneAndUpdate(filter, newDocument,
-				upsertAfterFindOneAndUpdateOptions);
-		ObjectId oid = (ObjectId) newRecord.get(FIELD_ID);
-
-		return oid.toHexString();
-	}
-
 
 	@Override
-	public void markCrawlerEntryAsProcessed(String msgId) throws Exception {
-		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
-		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, new ObjectId(msgId));
-		FindIterable<DBObject> news = storylineCollections.find(filter).limit(1);
-		DBObject object = news.first();
-		// mark crawler news as processed
-		ObjectId crawlerId = (ObjectId) object.get("crawler_id");
-		filter = eq(FIELD_ID, crawlerId);
-		// { "$set" : { "in_process" : "true"}}
-		Bson setProcessed =
-				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED + "' : true}}");
-		crawlerCollections.findOneAndUpdate(filter, setProcessed);
-	}
+	public String upsertNewsArticleByCrawlerEntry(CrawlerEntry crawlerEntry) throws Exception {
+		MongoCollection<DBObject> serverCollection = getStorylineCollection();
+		// find by source:path
+		Bson findSourcePath = and(eq("source", crawlerEntry.source), eq("path", crawlerEntry.path));
+		FindIterable<DBObject> find = serverCollection.find(findSourcePath).limit(1);
+		// если существует -- обновить "crawler_id"
+		if (find.first() != null) {
+			DBObject newsArticleDB = find.first();
+			// update crawler_id
+			newsArticleDB.put(FIELD_CRAWLER_ID, new ObjectId(crawlerEntry._id.value));
+			// update by key
+			Bson filter = eq(FIELD_ID, newsArticleDB.get(FIELD_ID));
+			Bson newDocument = new Document("$set", newsArticleDB);
+			serverCollection.updateOne(filter, newDocument);
+			ObjectId oid = (ObjectId) newsArticleDB.get(FIELD_ID);
+			return oid.toHexString();
+		} else {
+			// если не существует -- создать новый, скопировать существующие атрибуты и бежать
+			NewsArticle newsArticle = new NewsArticle(crawlerEntry);
+			BasicDBObject dbObject = BSONUtils.serialize(newsArticle);
+			MongoCollection<DBObject> collection = getStorylineCollection();
+			Bson newDocument = new Document("$set", dbObject);
+			DBObject newRecord = collection.findOneAndUpdate(findSourcePath, newDocument,
+					upsertAfterFindOneAndUpdateOptions);
+			ObjectId oid = (ObjectId) newRecord.get(FIELD_ID);
+			return oid.toHexString();
 
-
-	@Override
-	public CrawlerEntry getCrawlerEntry(String objectId) throws Exception {
-		MongoCollection<DBObject> collection = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, new ObjectId(objectId));
-		FindIterable<DBObject> iter = collection.find(filter).limit(1);
-		DBObject dbObject = iter.first();
-		return BSONUtils.deserialize(dbObject, CrawlerEntry.class);
+		}
 	}
 
 

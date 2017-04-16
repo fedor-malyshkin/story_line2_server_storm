@@ -25,7 +25,8 @@ public class NewsArticle {
 	protected void clone(CrawlerEntry other) {
 		this.crawlerId = other._id;
 		this.creationDate = new Date();
-		this.publicationDate = new Date(other.publicationDate.getTime());
+		this.publicationDate =
+				other.publicationDate != null ? new Date(other.publicationDate.getTime()) : null;
 		this.content = other.content;
 		this.path = other.path;
 		this.source = other.source;
@@ -96,16 +97,5 @@ public class NewsArticle {
 	@JsonProperty("facts")
 	public Map<String, List<NewsArticleFact>> facts = new HashedMap<>();
 
-
-
-	public void cloneDataFromCrawlerEntry(CrawlerEntry entry) {
-		this.content = entry.content;
-		this.imageUrl = entry.imageUrl;
-		this.path = entry.path;
-		this.source = entry.source;
-		this.title = entry.title;
-		this.url = entry.url;
-		this.publicationDate = entry.publicationDate;
-	}
 
 }
