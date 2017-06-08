@@ -71,19 +71,19 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 
 	@Override
-	public void index(NewsArticle newsArticle) throws Exception {
-		if (newsArticle._id == null || newsArticle._id.value == null)
+	public void indexNewsArticle(Map<String, Object> newsArticle) throws Exception {
+		if (NewsArticle.id(newsArticle) == null)
 			throw new IllegalArgumentException("id in object must be set to index it.");
 
 		RestClient elClient = getRestClient();
-		String endpoint =
-				String.format("/%s/%s/%s", writeIndex, INDEX_TYPE_NEWS_ARTICLE, newsArticle._id);
+		String endpoint = String.format("/%s/%s/%s", writeIndex, INDEX_TYPE_NEWS_ARTICLE,
+				NewsArticle.idString(newsArticle));
 		// set id to null to escape exception from ES "is a metadata field and cannot be added
 		// inside a document. Use the index API request parameters."
-		Id _id = newsArticle._id;
-		newsArticle._id = null;
+		Id _id = NewsArticle.id(newsArticle);
+		NewsArticle.id(newsArticle, null);
 		String json = JSONUtils.serialize(newsArticle);
-		newsArticle._id = _id;
+		NewsArticle.id(newsArticle, _id);
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
 		// PUT /writeIndex/INDEX_TYPE_NEWS_ARTICLE/ID
 		elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
@@ -231,7 +231,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		List<Map<String, Object>> result = new ArrayList<>();
 
 
-		Map<String, Object> map = JSONUtils.deserialize(json, HashMap.class);
+		Map<String, Object> map = JSONUtils.deserialize(json);
 		Map<String, Object> hits1 = (Map<String, Object>) map.get("hits");
 		int total = (int) hits1.get("total");
 		if (total == 0)

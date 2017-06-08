@@ -32,7 +32,6 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	public void ack(Object msgId) {
 		try {
 			mongoDBClient.markCrawlerEntryAsProcessed((String) msgId);
-			mongoDBClient.markNewsArticleAsProcessed((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -59,7 +58,7 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void fail(Object msgId) {
 		try {
-			mongoDBClient.unmarkCrawlerEntryAsInProcess((String) msgId);
+			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticeId((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -73,12 +72,14 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void nextTuple() {
 		try {
-			CrawlerEntry crawlerEntry = mongoDBClient.getNextUnprocessedCrawlerEntry();
+			Map<String, Object> crawlerEntry = mongoDBClient.getNextUnprocessedCrawlerEntry();
 			// there is no data
-			if (null == crawlerEntry)
+			if (null == crawlerEntry) {
+				mongoDBClient.getNextUnprocessedCrawlerEntry();
 				return;
+			}
 			String id = mongoDBClient.upsertNewsArticleByCrawlerEntry(crawlerEntry);
-			collector.emit(Arrays.asList(crawlerEntry.source, id), id);
+			collector.emit(Arrays.asList(CrawlerEntry.source(crawlerEntry), id), id);
 		} catch (Exception e) {
 			log.error("---", e);
 		}

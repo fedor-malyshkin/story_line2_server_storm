@@ -63,13 +63,13 @@ public class ContentExtractingBoltTest {
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
 
-		NewsArticle na = new NewsArticle();
-		na.crawlerId = new Id("_crawlerId");
+		Map<String, Object> na = NewsArticle.newObject();
+		NewsArticle.crawlerId(na, new Id("_crawlerId"));
 		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(na);
 
 
-		CrawlerEntry ce = new CrawlerEntry();
-		ce.rawContent = null;
+		Map<String, Object> ce = CrawlerEntry.newObject();
+		CrawlerEntry.rawContent(ce, null);
 		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
 
 		// exec
@@ -88,25 +88,26 @@ public class ContentExtractingBoltTest {
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
 
-		NewsArticle na = new NewsArticle();
-		na.crawlerId = new Id("_crawlerId");
+		Map<String, Object> na = NewsArticle.newObject();
+		NewsArticle.crawlerId(na, new Id("_crawlerId"));
 		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(na);
 
 
-		CrawlerEntry ce = new CrawlerEntry();
-		ce.rawContent = "some text";
-		ce.source = "some source";
-		ce.url = "some url";
+		Map<String, Object> ce = CrawlerEntry.newObject();
+		CrawlerEntry.rawContent(ce, "some text");
+		CrawlerEntry.source(ce, "some source");
+		CrawlerEntry.url(ce, "some url");
 		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
 
-		Map<String, Object> data  = new HashMap<>();
-		when(groovyInterpreter.extractData(anyString(), anyString(), eq("some text"))).thenReturn(data);
+		Map<String, Object> data = new HashMap<>();
+		when(groovyInterpreter.extractData(anyString(), anyString(), eq("some text")))
+				.thenReturn(data);
 		// exec
 		testable.execute(tuple);
 
 		verify(mongoDBClient).getNewsArticle(anyString());
 		verify(mongoDBClient).getCrawlerEntry(anyString());
 		verify(groovyInterpreter).extractData(anyString(), anyString(), eq("some text"));
-		
+
 	}
 }

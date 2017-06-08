@@ -1,12 +1,19 @@
 package ru.nlp_project.story_line2.server_storm;
 
-import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
-import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import java.util.Date;
+import java.util.Map;
 
 
 public interface IMongoDBClient {
+	public static final String FIELD_ID = "_id";
+	public static final String FIELD_CRAWLER_ID = "crawler_id";
+	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
+	public static final String CRAWLER_ENTRY_FIELD_ARCHIVED = "archived";
+	public static final String CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED = "archive_processed";
+	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
 
-	CrawlerEntry getCrawlerEntry(String objectId) throws Exception;
+
+	Map<String, Object> getCrawlerEntry(String newsArticleId) throws Exception;
 
 
 	/**
@@ -15,7 +22,7 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	NewsArticle getNewsArticle(String objectId) throws Exception;
+	Map<String, Object> getNewsArticle(String newsArticleId) throws Exception;
 
 	/**
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
@@ -25,21 +32,9 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	CrawlerEntry getNextUnprocessedCrawlerEntry() throws Exception;
+	Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception;
 
-	void markCrawlerEntryAsProcessed(String msgId) throws Exception;
-
-	/**
-	 * Отметит новостную статью как обработанную.
-	 * 
-	 * При этом выставляется в документе поле {"processed": true }, так же аналогичный флаг
-	 * выставляется в статье круалера.
-	 * 
-	 * @param msgId
-	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
-	 */
-	void markNewsArticleAsProcessed(String objectId) throws Exception;
+	void markCrawlerEntryAsProcessed(String newsArticleId) throws Exception;
 
 	void shutdown();
 
@@ -48,9 +43,10 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	void unmarkCrawlerEntryAsInProcess(String objectId) throws Exception;
+	void unmarkCrawlerEntryAsInProcessByNewsArticeId(String newsArticleId) throws Exception;
+	void unmarkCrawlerEntryAsInProcess(String crawlerEntryId) throws Exception;
 
-	void updateCrawlerEntry(CrawlerEntry entry) throws Exception;
+	void updateCrawlerEntry(Map<String, Object> entry) throws Exception;
 
 	/**
 	 * @param newsArticle
@@ -58,7 +54,7 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	void updateNewsArticle(NewsArticle newsArticle) throws Exception;
+	void updateNewsArticle(Map<String, Object> newsArticle) throws Exception;
 
 
 	/**
@@ -71,6 +67,15 @@ public interface IMongoDBClient {
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	String upsertNewsArticleByCrawlerEntry(CrawlerEntry entry) throws Exception;
+	String upsertNewsArticleByCrawlerEntry(Map<String, Object> entry) throws Exception;
+
+
+	Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception;
+
+
+	void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception;
+
+
+	void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception;
 
 }

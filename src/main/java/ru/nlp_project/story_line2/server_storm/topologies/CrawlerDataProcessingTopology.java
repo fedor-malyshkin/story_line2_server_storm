@@ -30,11 +30,11 @@ import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
  *
  */
 public class CrawlerDataProcessingTopology {
-	private static final String TOPOLOGY_NAME = "crawler_data_processing_topology";
-	private static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
-	private static final String BOLT_CONTENT_EXTRACTOR = "content_extractor";
-	private static final String BOLT_TEXT_PROCESSOR = "text_processor";
-	private static final String SPOUT_CRAWLER_ENTRY_READER = "crawler_entry_reader";
+	public static final String TOPOLOGY_NAME = "crawler_data_processing_topology";
+	public static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
+	public static final String BOLT_CONTENT_EXTRACTOR = "content_extractor";
+	public static final String BOLT_TEXT_PROCESSOR = "text_processor";
+	public static final String SPOUT_CRAWLER_ENTRY_READER = "crawler_entry_reader";
 
 	public static void main(String args[]) throws IOException, AlreadyAliveException,
 			InvalidTopologyException, AuthorizationException {

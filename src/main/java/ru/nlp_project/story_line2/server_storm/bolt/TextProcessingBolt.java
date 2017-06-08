@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
-import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 @SuppressWarnings("unused")
@@ -47,7 +46,7 @@ public class TextProcessingBolt implements IRichBolt {
 		String objectId = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_ID);
 		String domain = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
-			NewsArticle newsArticle = mongoDBClient.getNewsArticle(objectId);
+			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
 			//textAnalyser.parseText(newsArticle.content);
 			// collectExtractedFacts(newsArticle);
 			// storeExtractedFacts(newsArticle);
@@ -62,7 +61,7 @@ public class TextProcessingBolt implements IRichBolt {
 	}
 
 
-	private void collectExtractedFacts(NewsArticle newsArticle) {
+	private void collectExtractedFacts(Map<String, Object> newsArticle) {
 		// Map<String, List<NewsArticleFact>> facts = new HashMap<>();
 		// facts.put("geo", textAnalyser.getGeoFacts());
 		// facts.put("noun", textAnalyser.getNounFacts());
@@ -70,7 +69,7 @@ public class TextProcessingBolt implements IRichBolt {
 		// newsArticle.facts = facts;
 	}
 
-	private void storeExtractedFacts(NewsArticle newsArticle) throws Exception {
+	private void storeExtractedFacts(Map<String, Object> newsArticle) throws Exception {
 		mongoDBClient.updateNewsArticle(newsArticle);
 	}
 

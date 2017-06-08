@@ -47,11 +47,10 @@ public class NewsHeaderFinderFunction implements Function {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void execute(TridentTuple tuple, TridentCollector collector) {
 		String json = tuple.getStringByField(TUPLE_FIELD_NAME_ARGS);
-		Map<String, Object> params = JSONUtils.deserialize(json, HashMap.class);
+		Map<String, Object> params = JSONUtils.deserialize(json);
 		if (NamesUtil.FUN_NAME_GET_NEWS_HEADERS.equalsIgnoreCase(functionName)) {
 			List<Map<String, Object>> newsHeaders = getNewsHeaders(params, collector);
 			collector.emit(new Values(newsHeaders));

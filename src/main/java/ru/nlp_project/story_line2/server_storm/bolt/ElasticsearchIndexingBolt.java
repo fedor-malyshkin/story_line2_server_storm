@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
-import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ElasticsearchIndexingBolt implements IRichBolt {
@@ -42,8 +41,8 @@ public class ElasticsearchIndexingBolt implements IRichBolt {
 	public void execute(Tuple input) {
 		String objectId = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_ID);
 		try {
-			NewsArticle newsArticle = mongoDBClient.getNewsArticle(objectId);
-			searchManager.index(newsArticle);
+			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
+			searchManager.indexNewsArticle(newsArticle);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			collector.fail(input);

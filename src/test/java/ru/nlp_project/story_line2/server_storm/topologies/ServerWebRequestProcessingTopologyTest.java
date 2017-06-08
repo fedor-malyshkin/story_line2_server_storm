@@ -6,7 +6,6 @@ import static org.mockito.Mockito.only;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +63,6 @@ public class ServerWebRequestProcessingTopologyTest {
 		drpc.shutdown();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testGetNewsHeaders() {
 		String source = "bnkomi.ru";
@@ -91,7 +89,7 @@ public class ServerWebRequestProcessingTopologyTest {
 		Assertions.assertThat(execute).isNotNull();
 		String res = removeSurroundingBrackets(execute);
 
-		List<Map<String, Object>> list = JSONUtils.deserialize(res, ArrayList.class);
+		List<Map<String, Object>> list = JSONUtils.deserializeList(res);
 		Map<String, Object> map = list.get(1);
 		Assertions.assertThat(map.get("_id")).isEqualTo(2);
 		Assertions.assertThat(map.get("title")).isEqualTo("XXXX");

@@ -6,10 +6,12 @@ import dagger.Component;
 import ru.nlp_project.story_line2.server_storm.bolt.ContentExtractingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.TextProcessingBolt;
+import ru.nlp_project.story_line2.server_storm.functions.ArchiveCrawlerEntryFunction;
 import ru.nlp_project.story_line2.server_storm.functions.JSONConverterFunction;
 import ru.nlp_project.story_line2.server_storm.functions.NewsArticleFinderFunction;
 import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunction;
 import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
+import ru.nlp_project.story_line2.server_storm.spout.UnarchivedCrawlerEntryReaderSpout;
 
 @Singleton
 @Component(modules = {ServerStormModule.class})
@@ -28,4 +30,8 @@ public abstract class ServerStormComponent {
 	public abstract void inject(NewsArticleFinderFunction instance);
 
 	public abstract void inject(CrawlerEntryReaderSpout instance);
+
+	public abstract void inject(UnarchivedCrawlerEntryReaderSpout instance);
+
+	public abstract void inject(ArchiveCrawlerEntryFunction instance);
 }

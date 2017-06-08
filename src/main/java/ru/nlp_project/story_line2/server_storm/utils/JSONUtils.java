@@ -1,12 +1,14 @@
 package ru.nlp_project.story_line2.server_storm.utils;
 
 import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZoneOffset;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -14,13 +16,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.deser.std.UntypedObjectDeserializer.Vanilla;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import ru.nlp_project.story_line2.server_storm.model.Id;
@@ -35,7 +37,32 @@ import ru.nlp_project.story_line2.server_storm.model.Id;
  *
  */
 public class JSONUtils {
+	private static ObjectMapper jsonMapper;
 
+	/**
+	 * Настройка mapper'а на другой формат хранения данных для даты -- UTC ()
+	 * 
+	 * <ul>
+	 * <li>See: http://stackoverflow.com/questions/12463049/date-format-mapping-to-json-jackson</li>
+	 * </ul>
+	 * 
+	 * @return
+	 */
+	public static ObjectMapper getJSONObjectMapper() {
+		if (jsonMapper == null) {
+			jsonMapper = new ObjectMapper(new JsonFactory());
+			jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+			jsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+			jsonMapper.setSerializationInclusion(Include.NON_NULL);
+
+			SimpleModule module = new SimpleModule();
+			module.addDeserializer(Object.class, new ObjectDeserializer());
+			module.addSerializer(Date.class, new JsonDateSerializer());
+			module.addSerializer(Id.class, new JsonIdSerializer());
+			jsonMapper.registerModule(module);
+		}
+		return jsonMapper;
+	}
 
 
 	public static class JsonIdDeserializer extends JsonDeserializer<Id> {
@@ -61,45 +88,17 @@ public class JSONUtils {
 			if (id == null)
 				gen.writeNull();
 			else {
-				gen.writeString(id.value);
+				gen.writeString(id.getValue());
 			}
 		}
 	}
 
 
-	public static class JsonDateDeserializer extends JsonDeserializer<Date> {
-
-		private DateTimeFormatter formatter;
-		private ZoneId defaultZoneId;
-
-		public JsonDateDeserializer() {
-			super();
-			defaultZoneId = ZoneId.systemDefault();
-			formatter = DateTimeFormatter.ISO_INSTANT.withZone(defaultZoneId);
-
-		}
-
-		@Override
-		public Date deserialize(JsonParser p, DeserializationContext ctxt)
-				throws IOException, JsonProcessingException {
-			if (p.getCurrentToken() == JsonToken.VALUE_NULL)
-				return null;
-			if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
-				// 1970-01-01T00:00:01Z
-				ZonedDateTime zdt = ZonedDateTime.parse(p.getValueAsString(), formatter);
-				return Date.from(zdt.toInstant());
-			} else
-				throw new IllegalStateException();
-		}
-	}
 
 	public static class JsonDateSerializer extends JsonSerializer<Date> {
 
-		private DateTimeFormatter formatter;
 
-		public JsonDateSerializer() {
-			formatter = DateTimeFormatter.ISO_INSTANT;
-		}
+		public JsonDateSerializer() {}
 
 		@Override
 		public void serialize(final Date value, final JsonGenerator gen,
@@ -107,57 +106,76 @@ public class JSONUtils {
 			if (value == null)
 				gen.writeNull();
 			else {
-				Instant instant = value.toInstant();
-				ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
-				gen.writeString(formatter.format(zonedDateTime));
+				gen.writeString(DateTimeUtils.serializeDate(value));
 			}
 		}
 	}
 
+	public static class ObjectDeserializer extends JsonDeserializer<Object> {
 
 
-	private static ObjectMapper jsonMapper;
+		private static JsonDeserializer<Object> vanillaSeserializer;
 
-	/**
-	 * Настройка mapper'а на другой формат хранения данных для даты -- UTC ()
-	 * 
-	 * <ul>
-	 * <li>See: http://stackoverflow.com/questions/12463049/date-format-mapping-to-json-jackson</li>
-	 * </ul>
-	 * 
-	 * @return
-	 */
-	public static ObjectMapper getJSONObjectMapper() {
-		if (jsonMapper == null) {
-			jsonMapper = new ObjectMapper(new JsonFactory());
-			jsonMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-			jsonMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-			jsonMapper.setSerializationInclusion(Include.NON_NULL);
-
-			final SimpleModule module = new SimpleModule("", Version.unknownVersion());
-			module.addSerializer(Date.class, new JsonDateSerializer());
-			module.addDeserializer(Date.class, new JsonDateDeserializer());
-			module.addSerializer(Id.class, new JsonIdSerializer());
-			module.addDeserializer(Id.class, new JsonIdDeserializer());
-
-			jsonMapper.registerModule(module);
-
+		public ObjectDeserializer() {
+			vanillaSeserializer = new Vanilla();
 
 		}
-		return jsonMapper;
+
+		@Override
+		public Object deserialize(JsonParser p, DeserializationContext ctxt)
+				throws IOException, JsonProcessingException {
+			if (p.getCurrentToken() == JsonToken.VALUE_NULL)
+				return null;
+			if (p.getCurrentToken() == JsonToken.VALUE_STRING) {
+				String value = p.getValueAsString();
+				// 1970-01-01T00:00:01Z or 1970-01-01T00:00:00.001Z
+				if ((value.length() == 20 || value.length() == 24) && value.endsWith("Z")) {
+					try {
+						return DateTimeUtils.deserializeDate(value);
+					} catch (DateTimeParseException e) {
+					}
+				}
+				if (value.length() == 24 && ObjectId.isValid(value)) {
+					return new Id(value);
+				}
+				return vanillaSeserializer.deserialize(p, ctxt);
+			} else
+				return vanillaSeserializer.deserialize(p, ctxt);
+		}
+
 	}
 
-	public static <T> T deserialize(String json, Class<T> clazz) {
+	@SuppressWarnings("unchecked")
+	public static Map<String, Object> deserialize(String json) {
 		ObjectMapper mapper = getJSONObjectMapper();
 		try {
-			return mapper.readValue(json, clazz);
+			return mapper.readValue(json, HashMap.class);
 		} catch (IOException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
 
-	public static String serialize(Object instance) {
+	public static String serialize(Map<String, Object> instance) {
+		ObjectMapper mapper = getJSONObjectMapper();
+		try {
+			return mapper.writeValueAsString(instance);
+		} catch (JsonProcessingException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static List<Map<String, Object>> deserializeList(String json) {
+		ObjectMapper mapper = getJSONObjectMapper();
+		try {
+			return mapper.readValue(json, ArrayList.class);
+		} catch (IOException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public static String serializeList(List<Map<String, Object>> instance) {
 		ObjectMapper mapper = getJSONObjectMapper();
 		try {
 			return mapper.writeValueAsString(instance);

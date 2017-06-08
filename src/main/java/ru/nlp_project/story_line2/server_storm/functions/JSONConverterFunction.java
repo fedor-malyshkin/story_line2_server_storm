@@ -45,7 +45,7 @@ public class JSONConverterFunction implements Function {
 	public void execute(TridentTuple tuple, TridentCollector collector) {
 		List<Map<String, Object>> newsHeaders =
 				(List<Map<String, Object>>) tuple.getValueByField(TUPLE_FIELD_NAME_RESULT);
-		String json = JSONUtils.serialize(newsHeaders);
+		String json = JSONUtils.serializeList(newsHeaders);
 		collector.emit(new Values(json));
 	}
 

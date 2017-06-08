@@ -49,12 +49,13 @@ public class ContentExtractingBolt implements IRichBolt {
 		String source = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
 			// получить текущую новостную статью
-			NewsArticle newsArticle = mongoDBClient.getNewsArticle(objectId);
+			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
 			// из не запись краулера
-			CrawlerEntry ce = mongoDBClient.getCrawlerEntry(newsArticle.crawlerId.toString());
+			Map<String, Object> ce =
+					mongoDBClient.getCrawlerEntry(NewsArticle.crawlerIdString(newsArticle));
 			// если в краулере поле сырого контента пустое (наверное взято из feed) -- атрибуты
 			// перенести в статью
-			if (ce.rawContent == null || ce.rawContent.isEmpty()) {
+			if (CrawlerEntry.rawContent(ce) == null || CrawlerEntry.rawContent(ce).isEmpty()) {
 				// emit new tuple
 				collector.emit(input, Arrays.asList(source, objectId));
 				// ack prev tuples
@@ -63,9 +64,11 @@ public class ContentExtractingBolt implements IRichBolt {
 			}
 
 			// ... иначе извлечь данные и перенести атрибуты встатью
-			Map<String, Object> data = groovyInterpreter.extractData(source, ce.url, ce.rawContent);
+			Map<String, Object> data = groovyInterpreter.extractData(source, CrawlerEntry.url(ce),
+					CrawlerEntry.rawContent(ce));
 			if (null == data) {
-				log.debug("No content {}:{} ({})", source, ce.path, ce.url);
+				log.debug("No content {}:{} ({})", source, CrawlerEntry.path(ce),
+						CrawlerEntry.url(ce));
 				return;
 			}
 
@@ -75,16 +78,15 @@ public class ContentExtractingBolt implements IRichBolt {
 			String content = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_CONTENT);
 
 
-			newsArticle.publicationDate = publicationDate;
-			newsArticle.title = title;
-			newsArticle.imageUrl = imageUrl;
-			newsArticle.content = content;
+			NewsArticle.publicationDate(newsArticle, publicationDate);
+			NewsArticle.title(newsArticle, title);
+			NewsArticle.imageUrl(newsArticle, imageUrl);
+			NewsArticle.content(newsArticle, content);
 			// update crawler entry "publicationn_date"
 			if (publicationDate != null) {
-				ce.publicationDate = publicationDate;
+				CrawlerEntry.publicationDate(ce, publicationDate);
 				mongoDBClient.updateCrawlerEntry(ce);
 			}
-
 
 			mongoDBClient.updateNewsArticle(newsArticle);
 		} catch (Exception e) {
@@ -99,7 +101,6 @@ public class ContentExtractingBolt implements IRichBolt {
 
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

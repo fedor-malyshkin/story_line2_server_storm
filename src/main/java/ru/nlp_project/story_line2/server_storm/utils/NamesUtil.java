@@ -5,6 +5,8 @@ public class NamesUtil {
 	public static final String FUN_NAME_GET_NEWS_ARTICLE = "get_news_article";
 	public static final String FUN_NAME_GET_NEWS_HEADERS = "get_news_headers";
 
+	public static final String STREAM_ARCHIVE_OLD_ARTICLES = "archive_old_articles";
+	
 	public static final String MONGODB_CRAWLER_COLLECTION_NAME = "crawler_entries";
 	public static final String MONGODB_CRAWLER_DATABASE_NAME = "crawler";
 	public static final String MONGODB_STORYLINE_COLLECTION_NAME = "news_entries";
