@@ -50,7 +50,7 @@ public class CrawlerDataProcessingTopology {
 			throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
 		Config conf = new Config();
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
-		conf.setNumWorkers(1);
+		conf.setNumWorkers(2);
 		conf.setMaxSpoutPending(5000);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60 * 5);

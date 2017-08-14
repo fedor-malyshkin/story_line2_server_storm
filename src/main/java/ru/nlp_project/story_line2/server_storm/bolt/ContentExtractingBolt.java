@@ -52,7 +52,7 @@ public class ContentExtractingBolt implements IRichBolt {
 			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
 			// из не запись краулера
 			Map<String, Object> ce =
-					mongoDBClient.getCrawlerEntry(NewsArticle.crawlerIdString(newsArticle));
+					mongoDBClient.getCrawlerEntryByNewsArticeId(NewsArticle.crawlerIdString(newsArticle));
 			// если в краулере поле сырого контента пустое (наверное взято из feed) -- атрибуты
 			// перенести в статью
 			if (CrawlerEntry.rawContent(ce) == null || CrawlerEntry.rawContent(ce).isEmpty()) {

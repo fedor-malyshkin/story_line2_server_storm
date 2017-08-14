@@ -70,13 +70,13 @@ public class ContentExtractingBoltTest {
 
 		Map<String, Object> ce = CrawlerEntry.newObject();
 		CrawlerEntry.rawContent(ce, null);
-		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
+		when(mongoDBClient.getCrawlerEntryByNewsArticeId(anyString())).thenReturn(ce);
 
 		// exec
 		testable.execute(tuple);
 
 		verify(mongoDBClient).getNewsArticle(anyString());
-		verify(mongoDBClient).getCrawlerEntry(anyString());
+		verify(mongoDBClient).getCrawlerEntryByNewsArticeId(anyString());
 		verifyZeroInteractions(groovyInterpreter);
 	}
 
@@ -97,7 +97,7 @@ public class ContentExtractingBoltTest {
 		CrawlerEntry.rawContent(ce, "some text");
 		CrawlerEntry.source(ce, "some source");
 		CrawlerEntry.url(ce, "some url");
-		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
+		when(mongoDBClient.getCrawlerEntryByNewsArticeId(anyString())).thenReturn(ce);
 
 		Map<String, Object> data = new HashMap<>();
 		when(groovyInterpreter.extractData(anyString(), anyString(), eq("some text")))
@@ -106,7 +106,7 @@ public class ContentExtractingBoltTest {
 		testable.execute(tuple);
 
 		verify(mongoDBClient).getNewsArticle(anyString());
-		verify(mongoDBClient).getCrawlerEntry(anyString());
+		verify(mongoDBClient).getCrawlerEntryByNewsArticeId(anyString());
 		verify(groovyInterpreter).extractData(anyString(), anyString(), eq("some text"));
 
 	}

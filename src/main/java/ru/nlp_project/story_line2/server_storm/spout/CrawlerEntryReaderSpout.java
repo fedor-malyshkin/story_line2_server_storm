@@ -31,7 +31,7 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void ack(Object msgId) {
 		try {
-			mongoDBClient.markCrawlerEntryAsProcessed((String) msgId);
+			mongoDBClient.markCrawlerEntryAsProcessedByNewsArticleId((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -58,7 +58,7 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void fail(Object msgId) {
 		try {
-			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticeId((String) msgId);
+			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticleId((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

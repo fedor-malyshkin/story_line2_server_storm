@@ -138,7 +138,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public Map<String, Object> getCrawlerEntry(String crawlerEntryId) throws Exception {
+	public Map<String, Object> getCrawlerEntryByNewsArticeId(String crawlerEntryId)
+			throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		Bson filter = eq(FIELD_ID, new Id(crawlerEntryId));
 		FindIterable<DBObject> iter = collection.find(filter).limit(1);
@@ -216,7 +217,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 
 	@Override
-	public void markCrawlerEntryAsProcessed(String newsArticleId) throws Exception {
+	public void markCrawlerEntryAsProcessedByNewsArticleId(String newsArticleId) throws Exception {
 		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		Bson filter = eq(FIELD_ID, new Id(newsArticleId));
@@ -225,7 +226,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		// mark crawler news as processed
 		Id crawlerId = (Id) object.get("crawler_id");
 		filter = eq(FIELD_ID, crawlerId);
-		// { "$set" : { "in_process" : "false", "processed" : "false" }}
+		// { "$set" : { "in_process" : "false", "processed" : "true" }}
 		Bson setProcessed = BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED
 				+ "' : true, '" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : false }}");
 		crawlerCollections.findOneAndUpdate(filter, setProcessed);
@@ -237,7 +238,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public void unmarkCrawlerEntryAsInProcessByNewsArticeId(String newsArticleId) throws Exception {
+	public void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId) throws Exception {
 		Map<String, Object> newsArticle = getNewsArticle(newsArticleId);
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		setObjectField(crawlerCollections, NewsArticle.crawlerIdString(newsArticle),
@@ -305,7 +306,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		}
 	}
 
-	// Выбираются записи (!archived && !in_archive_process && archive_processed && !in_process &&
+	// Выбираются записи (!archived && !archive_processed && !in_process &&
 	// "дата публикации меньше указанной")
 	@Override
 	public Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception {
@@ -326,9 +327,11 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
-		// in_processed != true AND proceed != true
-		Bson filter = eq(CRAWLER_ENTRY_FIELD_ARCHIVED, false);
-		// { "$set" : { "in_process" : "true"}}
+		// in_processed != true AND proceed != true -- берём только те, что отработаны и не
+		// обрабатываются сейчас
+		Bson filter = and(eq(CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED, true),
+				ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true));
+		// { "$set" : { "in_process" : "false", "archive_processed" : "false" }}
 		Bson setProcessed = BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS
 				+ "' : false, '" + CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED + "' : false  }}");
 		collection.updateMany(filter, setProcessed);
@@ -339,7 +342,10 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception {
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_PROCESSED, true);
+		// { "$set" : { "in_process" : "false", "archive_processed" : "true" }}
+		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED,
+				true);
+		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_IN_PROCESS, false);
 	}
 
 
@@ -349,6 +355,17 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		Bson update = BasicDBObject
 				.parse("{$set: {'" + fieldName + "' : " + Boolean.toString(value) + " }}");
 		collection.findOneAndUpdate(filter, update);
+	}
+
+
+	@Override
+	public Map<String, Object> getCrawlerEntry(String id) throws Exception {
+		MongoCollection<DBObject> serverCollections = getCrawlerCollection();
+		Bson filter = eq(FIELD_ID, new Id(id));
+		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
+		DBObject dbObject = iter.first();
+		return BSONUtils.deserialize(dbObject);
+
 	}
 
 

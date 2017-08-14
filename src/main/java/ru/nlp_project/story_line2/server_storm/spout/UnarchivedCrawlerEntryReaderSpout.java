@@ -120,7 +120,7 @@ public class UnarchivedCrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
 		Map<String, Object> conf = new HashMap<>();
-		// 1 dat
+		// 1 day
 		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1 * 1_000 * 60 * 60 * 24);
 		return conf;
 	}

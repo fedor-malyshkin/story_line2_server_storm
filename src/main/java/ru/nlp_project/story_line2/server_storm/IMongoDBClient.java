@@ -13,8 +13,10 @@ public interface IMongoDBClient {
 	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
 
 
-	Map<String, Object> getCrawlerEntry(String newsArticleId) throws Exception;
+	Map<String, Object> getCrawlerEntry(String id) throws Exception;
 
+
+	Map<String, Object> getCrawlerEntryByNewsArticeId(String newsArticleId) throws Exception;
 
 	/**
 	 * @param objectId
@@ -23,6 +25,8 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	Map<String, Object> getNewsArticle(String newsArticleId) throws Exception;
+
+	Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception;
 
 	/**
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
@@ -34,19 +38,28 @@ public interface IMongoDBClient {
 	 */
 	Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception;
 
-	void markCrawlerEntryAsProcessed(String newsArticleId) throws Exception;
+	void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception;
+
+	void markCrawlerEntryAsProcessedByNewsArticleId(String newsArticleId) throws Exception;
 
 	void shutdown();
+
+	void unmarkCrawlerEntryAsInProcess(String crawlerEntryId) throws Exception;
+
 
 	/**
 	 * @param objectId
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
 	 *         обрабатывать
 	 */
-	void unmarkCrawlerEntryAsInProcessByNewsArticeId(String newsArticleId) throws Exception;
-	void unmarkCrawlerEntryAsInProcess(String crawlerEntryId) throws Exception;
+	void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId) throws Exception;
+
+
+	void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception;
+
 
 	void updateCrawlerEntry(Map<String, Object> entry) throws Exception;
+
 
 	/**
 	 * @param newsArticle
@@ -68,14 +81,5 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	String upsertNewsArticleByCrawlerEntry(Map<String, Object> entry) throws Exception;
-
-
-	Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception;
-
-
-	void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception;
-
-
-	void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception;
 
 }
