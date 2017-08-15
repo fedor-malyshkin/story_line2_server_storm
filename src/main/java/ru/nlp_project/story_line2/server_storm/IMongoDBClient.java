@@ -16,8 +16,6 @@ public interface IMongoDBClient {
 	Map<String, Object> getCrawlerEntry(String id) throws Exception;
 
 
-	Map<String, Object> getCrawlerEntryByNewsArticeId(String newsArticleId) throws Exception;
-
 	/**
 	 * @param objectId
 	 * @return

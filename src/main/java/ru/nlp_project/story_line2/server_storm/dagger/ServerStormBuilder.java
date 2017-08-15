@@ -12,8 +12,8 @@ public class ServerStormBuilder {
 	}
 
 
-	public static void setTestMode(boolean testMode) {
-		ServerStormBuilder.testMode = testMode;
+	public static void initializeTestMode() {
+		ServerStormBuilder.testMode = true;
 		MetricRegistry metricRegistry = new MetricRegistry();
 		serverStormTestModule = new ServerStormTestModule(metricRegistry);
 	}

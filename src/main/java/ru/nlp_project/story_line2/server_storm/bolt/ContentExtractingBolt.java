@@ -52,9 +52,8 @@ public class ContentExtractingBolt implements IRichBolt {
 			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
 			// из не запись краулера
 			Map<String, Object> ce =
-					mongoDBClient.getCrawlerEntryByNewsArticeId(NewsArticle.crawlerIdString(newsArticle));
-			// если в краулере поле сырого контента пустое (наверное взято из feed) -- атрибуты
-			// перенести в статью
+					mongoDBClient.getCrawlerEntry(NewsArticle.crawlerIdString(newsArticle));
+			// если в краулере поле сырого контента пустое (наверное взято из feed) -- выйти
 			if (CrawlerEntry.rawContent(ce) == null || CrawlerEntry.rawContent(ce).isEmpty()) {
 				// emit new tuple
 				collector.emit(input, Arrays.asList(source, objectId));
@@ -63,10 +62,10 @@ public class ContentExtractingBolt implements IRichBolt {
 				return;
 			}
 
-			// ... иначе извлечь данные и перенести атрибуты встатью
+			// ... иначе извлечь данные и перенести атрибуты в статью
 			Map<String, Object> data = groovyInterpreter.extractData(source, CrawlerEntry.url(ce),
 					CrawlerEntry.rawContent(ce));
-			if (null == data) {
+			if (null == data || data.isEmpty()) {
 				log.debug("No content {}:{} ({})", source, CrawlerEntry.path(ce),
 						CrawlerEntry.url(ce));
 				return;
@@ -76,7 +75,6 @@ public class ContentExtractingBolt implements IRichBolt {
 			String title = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_TITLE);
 			String imageUrl = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_IMAGE_URL);
 			String content = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_CONTENT);
-
 
 			NewsArticle.publicationDate(newsArticle, publicationDate);
 			NewsArticle.title(newsArticle, title);

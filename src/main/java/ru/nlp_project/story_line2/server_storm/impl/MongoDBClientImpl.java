@@ -137,17 +137,6 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		return crawlerCollection;
 	}
 
-	@Override
-	public Map<String, Object> getCrawlerEntryByNewsArticeId(String crawlerEntryId)
-			throws Exception {
-		MongoCollection<DBObject> collection = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, new Id(crawlerEntryId));
-		FindIterable<DBObject> iter = collection.find(filter).limit(1);
-		DBObject dbObject = iter.first();
-		return BSONUtils.deserialize(dbObject);
-	}
-
-
 
 	@Override
 	public Map<String, Object> getNewsArticle(String newsArticleId) throws Exception {
@@ -238,7 +227,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId) throws Exception {
+	public void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId)
+			throws Exception {
 		Map<String, Object> newsArticle = getNewsArticle(newsArticleId);
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		setObjectField(crawlerCollections, NewsArticle.crawlerIdString(newsArticle),

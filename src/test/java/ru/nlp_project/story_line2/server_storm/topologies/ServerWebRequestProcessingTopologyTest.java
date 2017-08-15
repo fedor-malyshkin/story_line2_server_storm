@@ -38,7 +38,7 @@ public class ServerWebRequestProcessingTopologyTest {
 	@BeforeClass
 	public static void setUpClass() {
 		// dagger
-		ServerStormBuilder.setTestMode(true);
+		ServerStormBuilder.initializeTestMode();
 		serverStormTestModule = ServerStormBuilder.getServerStormTestModule();
 
 		// mocks

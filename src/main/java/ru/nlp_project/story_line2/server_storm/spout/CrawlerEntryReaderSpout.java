@@ -75,7 +75,6 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 			Map<String, Object> crawlerEntry = mongoDBClient.getNextUnprocessedCrawlerEntry();
 			// there is no data
 			if (null == crawlerEntry) {
-				mongoDBClient.getNextUnprocessedCrawlerEntry();
 				return;
 			}
 			String id = mongoDBClient.upsertNewsArticleByCrawlerEntry(crawlerEntry);
