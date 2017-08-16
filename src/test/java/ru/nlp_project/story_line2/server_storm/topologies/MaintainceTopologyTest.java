@@ -29,7 +29,6 @@ import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormTestModule;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
-import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public class MaintainceTopologyTest {
 
@@ -65,10 +64,6 @@ public class MaintainceTopologyTest {
 
 		// storm
 		cluster = new LocalCluster();
-
-		topologyConfig = new HashMap<String, Object>();
-		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
-				MaintainceTopology.createTopology());
 	}
 
 	@After
@@ -84,7 +79,6 @@ public class MaintainceTopologyTest {
 	// успешное, стандартное прохождение пакета через топологию
 	public void testSuccessfullPass() throws Exception {
 		// запросить CE
-		String newsArticleId = "fake-newArticleId";
 		String crawlerEntryId = "fake-crawlerEntryId";
 		String source = "some source";
 		String crawlerEntryRawValue = "some raw content";
@@ -96,7 +90,8 @@ public class MaintainceTopologyTest {
 				.thenReturn(unprocessedCrawlerEntry);
 		when(mongoDBClient.getCrawlerEntry(eq(crawlerEntryId))).thenReturn(unprocessedCrawlerEntry);
 
-		Thread.sleep(1 * 5 * 1_000);
+		startAndWaitTopo();
+
 		verify(mongoDBClient, atLeast(1))
 				.updateCrawlerEntry((argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
@@ -110,15 +105,14 @@ public class MaintainceTopologyTest {
 				})));
 	}
 
-
-	private Map<String, Object> createExtractedData() {
-		Map<String, Object> result = new HashMap<>();
-		result.put(IGroovyInterpreter.EXTR_KEY_CONTENT, "EXTR_KEY_CONTENT");
-		result.put(IGroovyInterpreter.EXTR_KEY_IMAGE_URL, "EXTR_KEY_IMAGE_URL");
-		result.put(IGroovyInterpreter.EXTR_KEY_PUB_DATE, new Date(1));
-		result.put(IGroovyInterpreter.EXTR_KEY_TITLE, "EXTR_KEY_TITLE");
-		return result;
+	protected void startAndWaitTopo() throws InterruptedException {
+		topologyConfig = new HashMap<String, Object>();
+		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
+				MaintainceTopology.createTopology());
+		Thread.sleep(1 * 5 * 1_000);
 	}
+
+
 
 	private Map<String, Object> createUnprocessedCrawlerEntry() {
 		Map<String, Object> result = CrawlerEntry.newObject();
@@ -126,12 +120,6 @@ public class MaintainceTopologyTest {
 		return result;
 	}
 
-	private Map<String, Object> createNewsArticle(String articleId, String crawlerId) {
-		Map<String, Object> result = NewsArticle.newObject();
-		NewsArticle.id(result, new Id(articleId));
-		NewsArticle.crawlerId(result, new Id(crawlerId));
-		return result;
-	}
 
 
 }
