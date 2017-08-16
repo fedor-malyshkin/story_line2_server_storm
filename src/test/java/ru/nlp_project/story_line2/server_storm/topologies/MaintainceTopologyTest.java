@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -32,23 +33,17 @@ import ru.nlp_project.story_line2.server_storm.model.Id;
 
 public class MaintainceTopologyTest {
 
-	private IMongoDBClient mongoDBClient;
-	private ISearchManager searchManager;
+	private static IMongoDBClient mongoDBClient;
+	private static ISearchManager searchManager;
 	private LocalCluster cluster;
-	private IGroovyInterpreter groovyInterpreter;
-	private IConfigurationManager configurationManager;
-	private ITextAnalyser textAnalyser;
+	private static IGroovyInterpreter groovyInterpreter;
+	private static IConfigurationManager configurationManager;
+	private static ITextAnalyser textAnalyser;
 
 	@BeforeClass
 	public static void setUpClass() {
 		// dagger
 		ServerStormBuilder.initializeTestMode();
-	}
-
-	private HashMap<String, Object> topologyConfig;
-
-	@Before
-	public void setUp() {
 		ServerStormTestModule serverStormTestModule = ServerStormBuilder.getServerStormTestModule();
 		// mocks
 		mongoDBClient = mock(IMongoDBClient.class);
@@ -61,10 +56,20 @@ public class MaintainceTopologyTest {
 		serverStormTestModule.groovyInterpreter = groovyInterpreter;
 		textAnalyser = mock(ITextAnalyser.class);
 		serverStormTestModule.textAnalyser = textAnalyser;
-
-		// storm
-		cluster = new LocalCluster();
 	}
+
+	@Before
+	public void setUp() {
+		reset(mongoDBClient);
+		reset(searchManager);
+		reset(configurationManager);
+		reset(groovyInterpreter);
+		reset(textAnalyser);
+	}
+
+	private HashMap<String, Object> topologyConfig;
+
+
 
 	@After
 	public void tearDown() throws InterruptedException {
@@ -106,6 +111,8 @@ public class MaintainceTopologyTest {
 	}
 
 	protected void startAndWaitTopo() throws InterruptedException {
+		// storm
+		cluster = new LocalCluster();
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
 				MaintainceTopology.createTopology());
