@@ -65,13 +65,16 @@ public class CrawlerDataProcessingTopologyTest {
 		serverStormTestModule.groovyInterpreter = groovyInterpreter;
 		textAnalyser = mock(ITextAnalyser.class);
 		serverStormTestModule.textAnalyser = textAnalyser;
+	}
 
+	protected void startAndWaitTopo() throws InterruptedException {
 		// storm
 		cluster = new LocalCluster();
 
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				CrawlerDataProcessingTopology.createTopology());
+		Thread.sleep(1 * 5 * 1_000);
 	}
 
 	@After
@@ -109,7 +112,8 @@ public class CrawlerDataProcessingTopologyTest {
 		when(groovyInterpreter.extractData(eq(source), any(), eq(crawlerEntryRawValue)))
 				.thenReturn(extractedData);
 
-		Thread.sleep(1 * 5 * 1_000);
+
+		startAndWaitTopo();
 		verify(mongoDBClient, atLeast(1))
 				.updateNewsArticle(argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
@@ -151,7 +155,8 @@ public class CrawlerDataProcessingTopologyTest {
 		when(groovyInterpreter.extractData(eq(source), any(), eq(crawlerEntryRawValue)))
 				.thenReturn(extractedData);
 
-		Thread.sleep(1 * 5 * 1_000);
+		startAndWaitTopo();
+
 		verify(mongoDBClient, never()).updateNewsArticle(any());
 	}
 
