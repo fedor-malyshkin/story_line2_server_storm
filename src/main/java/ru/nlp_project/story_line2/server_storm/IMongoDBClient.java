@@ -9,7 +9,6 @@ public interface IMongoDBClient {
 	public static final String FIELD_CRAWLER_ID = "crawler_id";
 	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
 	public static final String CRAWLER_ENTRY_FIELD_ARCHIVED = "archived";
-	public static final String CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED = "archive_processed";
 	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
 
 
@@ -24,6 +23,13 @@ public interface IMongoDBClient {
 	 */
 	Map<String, Object> getNewsArticle(String newsArticleId) throws Exception;
 
+	/**
+	 * получить следующий незаархивированный CE, старше указанной даты
+	 * 
+	 * @param date дата, раньше которой выбираются CE
+	 * @return следующий элемент или null при их отсуствии
+	 * @throws Exception
+	 */
 	Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception;
 
 	/**
@@ -35,8 +41,6 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception;
-
-	void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception;
 
 	void markCrawlerEntryAsProcessedByNewsArticleId(String newsArticleId) throws Exception;
 
@@ -51,10 +55,6 @@ public interface IMongoDBClient {
 	 *         обрабатывать
 	 */
 	void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId) throws Exception;
-
-
-	void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception;
-
 
 	void updateCrawlerEntry(Map<String, Object> entry) throws Exception;
 

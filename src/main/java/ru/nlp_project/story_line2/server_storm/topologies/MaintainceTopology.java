@@ -1,12 +1,11 @@
 package ru.nlp_project.story_line2.server_storm.topologies;
 
-import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.STREAM_ARCHIVE_OLD_ARTICLES;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.STREAM_ARCHIVE_OLD_CRALER_ENTRIES;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_ID;
 
 import java.io.IOException;
 
 import org.apache.storm.Config;
-import org.apache.storm.LocalDRPC;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.generated.AlreadyAliveException;
 import org.apache.storm.generated.AuthorizationException;
@@ -48,7 +47,7 @@ public class MaintainceTopology {
 			throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
 		Config conf = new Config();
 		updateConfiguration(configUrl, conf);
-		StormSubmitter.submitTopology(TOPOLOGY_NAME, conf, createTopology(null));
+		StormSubmitter.submitTopology(TOPOLOGY_NAME, conf, createTopology());
 	}
 
 	protected static void updateConfiguration(String configUrl, Config conf) {
@@ -59,12 +58,12 @@ public class MaintainceTopology {
 		conf.setMessageTimeoutSecs(60 * 5);
 	}
 
-	protected static StormTopology createTopology(LocalDRPC drpc) {
+	protected static StormTopology createTopology() {
 		TridentTopology topo = new TridentTopology();
 
-		topo.newStream(STREAM_ARCHIVE_OLD_ARTICLES, new UnarchivedCrawlerEntryReaderSpout()).each(
+		topo.newStream(STREAM_ARCHIVE_OLD_CRALER_ENTRIES, new UnarchivedCrawlerEntryReaderSpout()).each(
 				new Fields(TUPLE_FIELD_NAME_ID), new ArchiveCrawlerEntryFunction(),
-				new Fields(TUPLE_FIELD_NAME_ID));
+				new Fields());
 
 		return topo.build();
 	}

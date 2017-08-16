@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,8 +16,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.storm.LocalCluster;
+import org.apache.storm.generated.KillOptions;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,20 +36,24 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public class CrawlerDataProcessingTopologyTest {
 
-	private static ServerStormTestModule serverStormTestModule;
-	private static IMongoDBClient mongoDBClient;
-	private static ISearchManager searchManager;
-	private static LocalCluster cluster;
-	private static IGroovyInterpreter groovyInterpreter;
-	private static IConfigurationManager configurationManager;
-	private static ITextAnalyser textAnalyser;
+	private IMongoDBClient mongoDBClient;
+	private ISearchManager searchManager;
+	private LocalCluster cluster;
+	private IGroovyInterpreter groovyInterpreter;
+	private IConfigurationManager configurationManager;
+	private ITextAnalyser textAnalyser;
 
 	@BeforeClass
 	public static void setUpClass() {
 		// dagger
 		ServerStormBuilder.initializeTestMode();
-		serverStormTestModule = ServerStormBuilder.getServerStormTestModule();
+	}
 
+	private HashMap<String, Object> topologyConfig;
+
+	@Before
+	public void setUp() {
+		ServerStormTestModule serverStormTestModule = ServerStormBuilder.getServerStormTestModule();
 		// mocks
 		mongoDBClient = mock(IMongoDBClient.class);
 		serverStormTestModule.mongoDBClient = mongoDBClient;
@@ -63,53 +68,48 @@ public class CrawlerDataProcessingTopologyTest {
 
 		// storm
 		cluster = new LocalCluster();
-	}
 
-	@AfterClass
-	public static void tearDownClass() {
-		cluster.shutdown();
-	}
-
-	private HashMap<String, Object> topologyConfig;
-
-	@Before
-	public void setUp() {
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				CrawlerDataProcessingTopology.createTopology());
 	}
 
 	@After
-	public void tearDown() {
-
-		cluster.killTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME);
+	public void tearDown() throws InterruptedException {
+		KillOptions options = new KillOptions();
+		options.set_wait_secs(20);
+		cluster.killTopologyWithOpts(CrawlerDataProcessingTopology.TOPOLOGY_NAME, options);
+		cluster.shutdown();
 	}
 
 
 	@Test
+	// успешное, стандартное прохождение пакета через топологию
 	public void testSuccessfullPass() throws Exception {
 		// запросить CE
+		String newsArticleId = "fake-newArticleId";
+		String crawlerEntryId = "fake-crawlerEntryId";
+		String source = "some source";
+		String crawlerEntryRawValue = "some raw content";
 		Map<String, Object> unprocessedCrawlerEntry = createUnprocessedCrawlerEntry();
-		CrawlerEntry.rawContent(unprocessedCrawlerEntry, "some raw content");
-		CrawlerEntry.source(unprocessedCrawlerEntry, "some source");
+
+		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
+		CrawlerEntry.source(unprocessedCrawlerEntry, source);
 		when(mongoDBClient.getNextUnprocessedCrawlerEntry()).thenReturn(unprocessedCrawlerEntry);
 		// создать на его базе NA
-		when(mongoDBClient.upsertNewsArticleByCrawlerEntry(anyMap()))
-				.thenReturn("fake-newArticleId");
-		Map<String, Object> newsArticle =
-				createNewsArticle("fake-newArticleId", "fake-crawlerEntryId");
+		when(mongoDBClient.upsertNewsArticleByCrawlerEntry(anyMap())).thenReturn(newsArticleId);
+		Map<String, Object> newsArticle = createNewsArticle(newsArticleId, crawlerEntryId);
 		// обработка
 		// получить NA по идентификатору
 		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(newsArticle);
 		// получить CE для извлечения данных
-		when(mongoDBClient.getCrawlerEntry(eq("fake-crawlerEntryId")))
-				.thenReturn(unprocessedCrawlerEntry);
+		when(mongoDBClient.getCrawlerEntry(eq(crawlerEntryId))).thenReturn(unprocessedCrawlerEntry);
 		// получить из CE даннык
 		Map<String, Object> extractedData = createExtractedData();
-		when(groovyInterpreter.extractData(eq("some source"), any(), eq("some raw content")))
+		when(groovyInterpreter.extractData(eq(source), any(), eq(crawlerEntryRawValue)))
 				.thenReturn(extractedData);
 
-		Thread.sleep(1 * 10 * 1_000);
+		Thread.sleep(1 * 5 * 1_000);
 		verify(mongoDBClient, atLeast(1))
 				.updateNewsArticle(argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
@@ -123,6 +123,36 @@ public class CrawlerDataProcessingTopologyTest {
 						return true;
 					}
 				}));
+	}
+
+	@Test
+	// прохождение через топологию, где нет контента
+	public void testNoRawContent() throws Exception {
+		// запросить CE
+		String newsArticleId = "fake-newArticleId";
+		String crawlerEntryId = "fake-crawlerEntryId";
+		String source = "some source";
+		String crawlerEntryRawValue = "";
+		Map<String, Object> unprocessedCrawlerEntry = createUnprocessedCrawlerEntry();
+
+		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
+		CrawlerEntry.source(unprocessedCrawlerEntry, source);
+		when(mongoDBClient.getNextUnprocessedCrawlerEntry()).thenReturn(unprocessedCrawlerEntry);
+		// создать на его базе NA
+		when(mongoDBClient.upsertNewsArticleByCrawlerEntry(anyMap())).thenReturn(newsArticleId);
+		Map<String, Object> newsArticle = createNewsArticle(newsArticleId, crawlerEntryId);
+		// обработка
+		// получить NA по идентификатору
+		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(newsArticle);
+		// получить CE для извлечения данных
+		when(mongoDBClient.getCrawlerEntry(eq(crawlerEntryId))).thenReturn(unprocessedCrawlerEntry);
+		// получить из CE даннык
+		Map<String, Object> extractedData = createExtractedData();
+		when(groovyInterpreter.extractData(eq(source), any(), eq(crawlerEntryRawValue)))
+				.thenReturn(extractedData);
+
+		Thread.sleep(1 * 5 * 1_000);
+		verify(mongoDBClient, never()).updateNewsArticle(any());
 	}
 
 	private Map<String, Object> createExtractedData() {

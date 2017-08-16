@@ -79,15 +79,15 @@ public class UnarchivedCrawlerEntryReaderSpout implements IRichSpout {
 		LocalDate localDate = LocalDate.now();
 		localDate = localDate.minusYears(1);
 		try {
+			// получить следующий незаархивированный CE, старше указанной даты
 			Map<String, Object> crawlerEntry =
 					mongoDBClient.getNextUnarchivedCrawlerEntry(DateTimeUtils.asDate(localDate));
 			// there is no data
 			if (null == crawlerEntry) {
-				mongoDBClient.unmarkUnarchivedCrawlerEntriesArchiveProcessed();
 				return;
 			}
-			collector.emit(Arrays.asList(CrawlerEntry.id(crawlerEntry).toString()),
-					CrawlerEntry.id(crawlerEntry).toString());
+			collector.emit(Arrays.asList(CrawlerEntry.idString(crawlerEntry)),
+					CrawlerEntry.idString(crawlerEntry));
 		} catch (Exception e) {
 			log.error("---", e);
 		}
@@ -96,7 +96,7 @@ public class UnarchivedCrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void ack(Object msgId) {
 		try {
-			mongoDBClient.markCrawlerEntryAsArchiveProcessed((String) msgId);
+			mongoDBClient.unmarkCrawlerEntryAsInProcess((String) msgId);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

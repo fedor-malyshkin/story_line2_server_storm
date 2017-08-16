@@ -36,6 +36,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
+import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
@@ -73,8 +74,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		try {
 			MongoCollection<DBObject> collection = getCrawlerCollection();
 			List<String> fields = Arrays.asList(FIELD_CRAWLER_ID, CRAWLER_ENTRY_FIELD_PROCESSED,
-					CRAWLER_ENTRY_FIELD_ARCHIVED, CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED,
-					CRAWLER_ENTRY_FIELD_IN_PROCESS);
+					CRAWLER_ENTRY_FIELD_ARCHIVED, CRAWLER_ENTRY_FIELD_IN_PROCESS);
 			for (String field : fields) {
 				// in_process
 				BasicDBObject obj = new BasicDBObject();
@@ -296,15 +296,15 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		}
 	}
 
-	// Выбираются записи (!archived && !archive_processed && !in_process &&
+	// Выбираются записи (!archived && !in_process &&
 	// "дата публикации меньше указанной")
 	@Override
 	public Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		// in_processed != true AND proceed != true
 		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_ARCHIVED, true),
-				ne(CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED, true),
-				ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true), lt("publication_date", date));
+				ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
+				lt(IGroovyInterpreter.EXTR_KEY_PUB_DATE, date));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
 				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
@@ -314,29 +314,6 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		return null;
 	}
 
-	@Override
-	public void unmarkUnarchivedCrawlerEntriesArchiveProcessed() throws Exception {
-		MongoCollection<DBObject> collection = getCrawlerCollection();
-		// in_processed != true AND proceed != true -- берём только те, что отработаны и не
-		// обрабатываются сейчас
-		Bson filter = and(eq(CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED, true),
-				ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true));
-		// { "$set" : { "in_process" : "false", "archive_processed" : "false" }}
-		Bson setProcessed = BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS
-				+ "' : false, '" + CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED + "' : false  }}");
-		collection.updateMany(filter, setProcessed);
-
-	}
-
-
-	@Override
-	public void markCrawlerEntryAsArchiveProcessed(String crawlerEntryId) throws Exception {
-		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		// { "$set" : { "in_process" : "false", "archive_processed" : "true" }}
-		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_ARCHIVE_PROCESSED,
-				true);
-		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_IN_PROCESS, false);
-	}
 
 
 	protected void setObjectField(MongoCollection<DBObject> collection, String objectId,
