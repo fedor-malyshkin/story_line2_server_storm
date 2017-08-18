@@ -74,7 +74,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		try {
 			MongoCollection<DBObject> collection = getCrawlerCollection();
 			List<String> fields = Arrays.asList(FIELD_CRAWLER_ID, CRAWLER_ENTRY_FIELD_PROCESSED,
-					CRAWLER_ENTRY_FIELD_ARCHIVED, CRAWLER_ENTRY_FIELD_IN_PROCESS);
+					CRAWLER_ENTRY_FIELD_ARCHIVED, CRAWLER_ENTRY_FIELD_IN_PROCESS,
+					IGroovyInterpreter.EXTR_KEY_PUB_DATE);
 			for (String field : fields) {
 				// in_process
 				BasicDBObject obj = new BasicDBObject();

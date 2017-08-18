@@ -179,5 +179,4 @@ public class CrawlerDataProcessingTopologyTest {
 		NewsArticle.crawlerId(result, new Id(crawlerId));
 		return result;
 	}
-
 }
