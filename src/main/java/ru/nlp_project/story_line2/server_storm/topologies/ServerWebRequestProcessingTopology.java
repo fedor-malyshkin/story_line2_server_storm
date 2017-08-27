@@ -29,9 +29,7 @@ import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunctio
  * Run with JVM args
  * "-Dru.nlp_project.story_line2.server_storm.config=file:${workspace_loc:server_storm}/src/main/resources/ru/nlp_project/story_line2/server_storm/server_storm_config.yml"
  * <p/>
- * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar
- * ru.nlp_project.story_line2.server_storm.topologies.ServerWebRequestProcessingTopology
- * http://datahouse01.nlp-project.ru:9000/server_storm.yaml
+ * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar  ru.nlp_project.story_line2.server_storm.topologies.ServerWebRequestProcessingTopology http://datahouse01.nlp-project.ru:9000/server_storm.yaml
  * <p/>
  * 
  * @author fedor
@@ -59,7 +57,7 @@ public class ServerWebRequestProcessingTopology {
 	protected static void updateConfiguration(String configUrl, Config conf) {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(1);
-		conf.setMaxSpoutPending(5000);
+		conf.setMaxSpoutPending(500);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60 * 5);
 	}
@@ -71,21 +69,21 @@ public class ServerWebRequestProcessingTopology {
 				.each(new Fields(TUPLE_FIELD_NAME_ARGS),
 						new NewsHeaderFinderFunction(FUN_NAME_GET_NEWS_HEADERS),
 						new Fields(TUPLE_FIELD_NAME_RESULT))
-				.name("elastic...")
+				.name("elastic-searcher")
 				.each(new Fields(TUPLE_FIELD_NAME_RESULT),
 						new JSONConverterFunction(FUN_NAME_GET_NEWS_HEADERS),
 						new Fields(TUPLE_FIELD_NAME_JSON))
-				.name("converter...").project(new Fields(TUPLE_FIELD_NAME_JSON));
+				.name("json-converter").project(new Fields(TUPLE_FIELD_NAME_JSON));
 
 		createNewDRPCStream(topo, FUN_NAME_GET_NEWS_ARTICLE, drpc)
 				.each(new Fields(TUPLE_FIELD_NAME_ARGS),
 						new NewsArticleFinderFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_RESULT))
-				.name("extractor...")
+				.name("mongodb-extractor")
 				.each(new Fields(TUPLE_FIELD_NAME_RESULT),
 						new JSONConverterFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_JSON))
-				.name("converter...").project(new Fields(TUPLE_FIELD_NAME_JSON));
+				.name("json-converter").project(new Fields(TUPLE_FIELD_NAME_JSON));
 
 		return topo.build();
 	}

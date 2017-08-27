@@ -21,9 +21,7 @@ import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
  * Run with JVM args
  * "-Dru.nlp_project.story_line2.server_storm.config=file:${workspace_loc:server_storm}/src/main/resources/ru/nlp_project/story_line2/server_storm/server_storm_config.yml"
  * <p/>
- * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar
- * ru.nlp_project.story_line2.server_storm.topologies.CrawlerDataProcessingTopology
- * http://datahouse01.nlp-project.ru:9000/server_storm.yaml
+ * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar  ru.nlp_project.story_line2.server_storm.topologies.CrawlerDataProcessingTopology http://datahouse01.nlp-project.ru:9000/server_storm.yaml
  * <p/>
  * 
  * @author fedor
@@ -51,7 +49,7 @@ public class CrawlerDataProcessingTopology {
 		Config conf = new Config();
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(2);
-		conf.setMaxSpoutPending(5000);
+		conf.setMaxSpoutPending(500);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60 * 5);
 

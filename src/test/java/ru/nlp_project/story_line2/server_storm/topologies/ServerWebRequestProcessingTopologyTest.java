@@ -3,6 +3,7 @@ package ru.nlp_project.story_line2.server_storm.topologies;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,8 +16,10 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.LocalDRPC;
+import org.apache.storm.generated.KillOptions;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -47,24 +50,25 @@ public class ServerWebRequestProcessingTopologyTest {
 		searchManager = mock(ISearchManager.class);
 		serverStormTestModule.searchManager = searchManager;
 
-		// storm
-		drpc = new LocalDRPC();
-		cluster = new LocalCluster();
-		// Map<String, Object> config = Utils.readStormConfig();
-		Map<String, Object> config = new HashMap<String, Object>();
-		cluster.submitTopology(ServerWebRequestProcessingTopology.TOPOLOGY_NAME, config,
-				ServerWebRequestProcessingTopology.createTopology(drpc));
 	}
 
-	@AfterClass
-	public static void tearDown() {
-		cluster.killTopology(ServerWebRequestProcessingTopology.TOPOLOGY_NAME);
+	@Before
+	public void setUp() {
+		reset(mongoDBClient);
+		reset(searchManager);
+	}
+
+	@After
+	public void tearDown() throws InterruptedException {
+		KillOptions options = new KillOptions();
+		options.set_wait_secs(20);
+		cluster.killTopologyWithOpts(ServerWebRequestProcessingTopology.TOPOLOGY_NAME, options);
 		cluster.shutdown();
 		drpc.shutdown();
 	}
 
 	@Test
-	public void testGetNewsHeaders() {
+	public void testGetNewsHeaders() throws InterruptedException {
 		String source = "bnkomi.ru";
 		int count = 25;
 		// args
@@ -81,6 +85,8 @@ public class ServerWebRequestProcessingTopologyTest {
 		List<Map<String, Object>> searchResult = Arrays.asList(entry1, entry2);
 
 		when(searchManager.getNewsHeaders(eq(source), eq(count))).thenReturn(searchResult);
+
+		startAndWaitTopo();
 
 		String execute =
 				drpc.execute(NamesUtil.FUN_NAME_GET_NEWS_HEADERS, JSONUtils.serialize(args));
@@ -100,6 +106,19 @@ public class ServerWebRequestProcessingTopologyTest {
 		res = StringUtils.removeEndIgnoreCase(res, "\"]]");
 		res = StringEscapeUtils.unescapeJson(res);
 		return res;
+	}
+
+	private HashMap<String, Object> topologyConfig = new HashMap<>();
+
+
+	protected void startAndWaitTopo() throws InterruptedException {
+		// storm drpc
+		drpc = new LocalDRPC();
+		// storm cluster
+		cluster = new LocalCluster();
+		cluster.submitTopology(ServerWebRequestProcessingTopology.TOPOLOGY_NAME, topologyConfig,
+				ServerWebRequestProcessingTopology.createTopology(drpc));
+		Thread.sleep(1 * 5 * 1_000);
 	}
 
 }

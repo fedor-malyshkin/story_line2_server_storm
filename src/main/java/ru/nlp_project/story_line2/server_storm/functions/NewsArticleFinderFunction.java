@@ -2,7 +2,6 @@ package ru.nlp_project.story_line2.server_storm.functions;
 
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_ARGS;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,9 +15,9 @@ import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
+import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
@@ -62,8 +61,8 @@ public class NewsArticleFinderFunction implements Function {
 
 	private List<Map<String, Object>> getNewsArticles(Map<String, Object> params,
 			TridentCollector collector) {
-		String id = (String) params.get("id");
-		return searchManager.getNewsArticle(id);
+		Id id = (Id) params.get("id");
+		return searchManager.getNewsArticle(id.toString());
 
 	}
 }

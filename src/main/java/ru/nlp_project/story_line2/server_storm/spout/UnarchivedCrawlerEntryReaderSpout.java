@@ -26,8 +26,7 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 /**
  * Схема работы таковы:
  * <ol>
- * <li>Выбираются записи (!archived && !in_process && archive_processed && "дата публикации меньше
- * указанной")</li>
+ * <li>Выбираются записи (!archived && !in_process && "дата публикации меньше указанной")</li>
  * <li>выбранная записи запускаются в поток с установкой флага "in_process"</li>
  * <li>после отработки при положительном исходе выставляется in_process = false и archive_processed
  * = true</li>

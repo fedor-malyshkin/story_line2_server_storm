@@ -52,8 +52,9 @@ public class MaintainceTopology {
 
 	protected static void updateConfiguration(String configUrl, Config conf) {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
+		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1 * 1_000 * 60 * 60 * 24);
 		conf.setNumWorkers(1);
-		conf.setMaxSpoutPending(5000);
+		conf.setMaxSpoutPending(500);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60 * 5);
 	}
