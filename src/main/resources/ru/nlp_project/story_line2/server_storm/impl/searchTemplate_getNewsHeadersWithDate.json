@@ -1,0 +1,36 @@
+{
+  "_source": [
+    "publication_date",
+    "title",
+    "path",
+    "source",
+    "image_url",
+    "url"
+  ],
+  "sort": [
+    {
+      "publication_date": {
+        "order": "desc"
+      }
+    }
+  ],
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "source": "${source}"
+          }
+        },
+        {
+          "range": {
+            "publication_date": {
+              "lt": "${publication_date}"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+

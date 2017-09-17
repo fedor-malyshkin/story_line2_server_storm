@@ -1,0 +1,8 @@
+{
+    "_source": [ "publication_date"],
+ 	"sort" : [{ "publication_date" : {"order" : "desc"}}],    
+    "query" : {
+        "term" : { "_id" : "${id}" }
+        
+    }
+}

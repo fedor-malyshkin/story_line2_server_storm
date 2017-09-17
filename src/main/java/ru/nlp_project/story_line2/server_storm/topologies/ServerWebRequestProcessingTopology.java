@@ -79,7 +79,7 @@ public class ServerWebRequestProcessingTopology {
 				.each(new Fields(TUPLE_FIELD_NAME_ARGS),
 						new NewsArticleFinderFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_RESULT))
-				.name("mongodb-extractor")
+				.name("elastic-extractor")
 				.each(new Fields(TUPLE_FIELD_NAME_RESULT),
 						new JSONConverterFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_JSON))

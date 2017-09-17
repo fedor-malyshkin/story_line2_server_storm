@@ -9,9 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.http.HttpEntity;
@@ -22,7 +20,6 @@ import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
@@ -31,26 +28,26 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {
-
+	private static final String NEWS_KEY_PUBLICATION_DATE = "publication_date";
+	private static final String NEWS_KEY_SOURCE = "source";
 	private static final String CLASSPATH_PREFIX = "ru/nlp_project/story_line2/server_storm/impl/";
 	private static final String REQUEST_METHOD_PUT = "PUT";
 	private static final String REQUEST_METHOD_GET = "GET";
-	private static final String REQUST_METHOD_HEAD = "HEAD";
+	private static final String REQUEST_METHOD_HEAD = "HEAD";
 	private static final int RESPONSE_SUCCESS = 200;
 	private static final String CP_INDEX_MAPPING = "indexMapping.json";
 	private static final String INDEX_TYPE_NEWS_ARTICLE = "news_article";
 	private static final Charset UTF8 = Charset.forName("UTF-8");
-
 	@Inject
 	public IConfigurationManager configurationManager;
+	String readIndex;
+	String writeIndex;
 	private Logger logger;
 	private boolean initialized = false;
 	private RestClient restClient;
-	protected String readIndex;
-	protected String writeIndex;
 
 	@Inject
-	public ElasticsearchManagerImpl() {
+	ElasticsearchManagerImpl() {
 		logger = LoggerFactory.getLogger(this.getClass());
 	}
 
@@ -59,21 +56,22 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		template = String.format(template, INDEX_TYPE_NEWS_ARTICLE);
 		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
 		restClient.performRequest(REQUEST_METHOD_PUT, "/" + indexName,
-				Collections.<String, String>emptyMap(), entity);
+				Collections.emptyMap(), entity);
 	}
 
 	private void createIndexAlias(String aliasName, String realName) throws IOException {
 		// PUT /logs_201305/_alias/2013
 		restClient.performRequest(REQUEST_METHOD_PUT,
 				String.format("/%s/_alias/%s", realName, aliasName),
-				Collections.<String, String>emptyMap());
+				Collections.emptyMap());
 	}
 
 
 	@Override
 	public void indexNewsArticle(Map<String, Object> newsArticle) throws Exception {
-		if (NewsArticle.id(newsArticle) == null)
+		if (NewsArticle.id(newsArticle) == null) {
 			throw new IllegalArgumentException("id in object must be set to index it.");
+		}
 
 		RestClient elClient = getRestClient();
 		String endpoint = String.format("/%s/%s/%s", writeIndex, INDEX_TYPE_NEWS_ARTICLE,
@@ -87,14 +85,13 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
 		// PUT /writeIndex/INDEX_TYPE_NEWS_ARTICLE/ID
 		elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
-				Collections.<String, String>emptyMap(), entity);
-		// String response = indexResponse.getEntity().toString();
-		// Header[] headers = indexResponse.getHeaders();
+				Collections.emptyMap(), entity);
 	}
 
 	private RestClient getRestClient() {
-		if (!initialized)
+		if (!initialized) {
 			initialize();
+		}
 		return restClient;
 	}
 
@@ -116,8 +113,9 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	private void initializeIndex() throws IOException {
 		MasterConfiguration configuration = configurationManager.getMasterConfiguration();
-		if (isIndexExists(configuration.elasticsearchRealIndex))
+		if (isIndexExists(configuration.elasticsearchRealIndex)) {
 			return;
+		}
 		createIndex(configuration.elasticsearchRealIndex);
 		createIndexAlias(configuration.elasticsearchReadAlias,
 				configuration.elasticsearchRealIndex);
@@ -127,31 +125,40 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	private boolean isIndexExists(String indexName) throws IOException {
 		// HEAD /index
-		Response response = restClient.performRequest(REQUST_METHOD_HEAD, indexName,
-				Collections.<String, String>emptyMap());
-		if (getCode(response) != RESPONSE_SUCCESS)
-			return false;
-		return true;
+		Response response = restClient.performRequest(REQUEST_METHOD_HEAD, indexName,
+				Collections.emptyMap());
+		return getCode(response) == RESPONSE_SUCCESS;
 	}
 
 	@Override
 	public void shutdown() {
-		if (restClient != null)
+		if (restClient != null) {
 			try {
 				restClient.close();
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
 			}
+		}
 
 	}
 
 
-
 	@Override
-	public List<Map<String, Object>> getNewsHeaders(String source, int count) {
-		String template = getStringFromClasspath("searchTemplate_getNewsHeaders.json");
+	public List<Map<String, Object>> getNewsHeaders(String source, int count,
+			String lastNewsId) {
+		String lastNewsPublicationDate = null;
+		String template = null;
 		Map<String, Object> subst = new HashMap<>();
-		subst.put("source", source);
+		subst.put(NEWS_KEY_SOURCE, source);
+
+		if (null != lastNewsId) {
+			lastNewsPublicationDate = getNewsArticlePublicationDate(lastNewsId);
+			subst.put(NEWS_KEY_PUBLICATION_DATE, lastNewsPublicationDate);
+			template = getStringFromClasspath("searchTemplate_getNewsHeadersWithDate.json");
+		} else {
+			template = getStringFromClasspath("searchTemplate_getNewsHeaders.json");
+		}
+
 		String requestData = fillTemplate(template, subst);
 
 		Response response;
@@ -161,22 +168,32 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			throw new IllegalStateException(
 					"Exception while search news headers: " + e.getMessage());
 		}
-		if (getCode(response) == 200)
+		if (getCode(response) == 200) {
 			return extractResults(getContent(response));
-		else
+		} else {
 			throw new IllegalStateException("Unexpected response: " + response);
+		}
 	}
 
-	protected String fillTemplate(String template, Map<String, Object> subst) {
+	private String getNewsArticlePublicationDate(String lastNewsId) {
+		List<Map<String, Object>> result = getNewsArticleByTemplate(lastNewsId,
+				"searchTemplate_getNewsArticleReturnPublicationDate.json");
+		return (String) result.get(0).get(NEWS_KEY_PUBLICATION_DATE);
+	}
+
+
+	String fillTemplate(String template, Map<String, Object> subst) {
 		StrSubstitutor sub = new StrSubstitutor(subst);
 		return sub.replace(template);
 	}
 
-	protected String getStringFromClasspath(String classpath) {
+
+	String getStringFromClasspath(String classpath) {
 		InputStream stream = Thread.currentThread().getContextClassLoader()
 				.getResourceAsStream(CLASSPATH_PREFIX + classpath);
-		if (stream == null)
+		if (stream == null) {
 			throw new IllegalStateException("Illegal classpath: " + CLASSPATH_PREFIX + classpath);
+		}
 		try {
 			return IOUtils.toString(stream, UTF8);
 		} catch (IOException e) {
@@ -184,7 +201,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		}
 	}
 
-	protected String getContent(Response response) {
+	private String getContent(Response response) {
 		InputStream stream = null;
 		try {
 			stream = response.getEntity().getContent();
@@ -192,16 +209,17 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		} finally {
-			if (stream != null)
+			if (stream != null) {
 				IOUtils.closeQuietly(stream);
+			}
 		}
 	}
 
-	protected int getCode(Response response) {
+	private int getCode(Response response) {
 		return response.getStatusLine().getStatusCode();
 	}
 
-	protected Response searchNewsArticle(String requestData, Integer size, Integer timeout)
+	private Response searchNewsArticle(String requestData, Integer size, Integer timeout)
 			throws IOException {
 		RestClient elClient = getRestClient();
 		String endpoint = formatSearchEndpoint();
@@ -212,30 +230,70 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 	private Map<String, String> formatSearchParams(Integer size, Integer timeout) {
-		if (size == null && timeout == null)
+		if (size == null && timeout == null) {
 			return Collections.emptyMap();
+		}
 		Map<String, String> result = new HashMap<>();
-		if (size != null)
+		if (size != null) {
 			result.put("size", size.toString());
-		if (timeout != null)
+		}
+		if (timeout != null) {
 			result.put("timeout", timeout.toString() + "ms");
+		}
 		return result;
 	}
 
-	protected String formatSearchEndpoint() {
+	String formatSearchEndpoint() {
 		return String.format("/%s/%s/_search", readIndex, INDEX_TYPE_NEWS_ARTICLE);
 	}
 
-	@SuppressWarnings("unchecked")
-	public List<Map<String, Object>> extractResults(String json) {
-		List<Map<String, Object>> result = new ArrayList<>();
 
+
+
+	/**
+	 * <pre>
+	{
+		"took" : 33,
+			"timed_out" : false,
+			"_shards" : {
+		"total" : 5,
+				"successful" : 5,
+				"failed" : 0
+	},
+		"hits" : {
+		"total" : 1,
+				"max_score" : null,
+				"hits" : [
+		{
+			"_index" : "story_line2_v1",
+				"_type" : "news_article",
+				"_id" : "59b4cde7dd12c0cca3588129",
+				"_score" : null,
+				"_source" : {
+			"publication_date" : "2017-09-10T05:25:00Z"
+		},
+			"sort" : [
+			1505021100000
+        ]
+		}
+    ]
+	}
+	}
+ 	 * </pre>
+		*
+	 * @param json
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	List<Map<String, Object>> extractResults(String json) {
+		List<Map<String, Object>> result = new ArrayList<>();
 
 		Map<String, Object> map = JSONUtils.deserialize(json);
 		Map<String, Object> hits1 = (Map<String, Object>) map.get("hits");
 		int total = (int) hits1.get("total");
-		if (total == 0)
+		if (total == 0) {
 			return Collections.emptyList();
+		}
 		Collection<Map<String, Object>> hits2 = (Collection<Map<String, Object>>) hits1.get("hits");
 
 		for (Map<String, Object> entry : hits2) {
@@ -250,7 +308,12 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	@Override
 	public List<Map<String, Object>> getNewsArticle(String id) {
-		String template = getStringFromClasspath("searchTemplate_getNewsArticle.json");
+		return getNewsArticleByTemplate(id, "searchTemplate_getNewsArticle.json");
+	}
+
+
+	private List<Map<String, Object>> getNewsArticleByTemplate(String id, String templateName) {
+		String template = getStringFromClasspath(templateName);
 		Map<String, Object> subst = new HashMap<>();
 		subst.put("id", id);
 		String requestData = fillTemplate(template, subst);
@@ -262,12 +325,12 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			throw new IllegalStateException(
 					"Exception while search news headers: " + e.getMessage());
 		}
-		if (getCode(response) == 200)
+		if (getCode(response) == 200) {
 			return extractResults(getContent(response));
-		else
+		} else {
 			throw new IllegalStateException("Unexpected response: " + response);
+		}
 	}
-
 
 
 }
