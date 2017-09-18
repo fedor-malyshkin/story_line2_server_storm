@@ -1,5 +1,8 @@
 package ru.nlp_project.story_line2.server_storm.impl;
 
+import groovy.util.GroovyScriptEngine;
+import groovy.util.ResourceException;
+import groovy.util.ScriptException;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -17,42 +20,33 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.inject.Inject;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.groovy.control.CompilerConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import groovy.lang.Binding;
-import groovy.lang.GroovyShell;
-import groovy.util.GroovyScriptEngine;
-import groovy.util.ResourceException;
-import groovy.util.ScriptException;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 
 /**
  * Интерпретатор groovy. Для скриптов, анализирующих html-страницы источников.
- * 
- * @author fedor
  *
+ * @author fedor
  */
 public class GroovyInterpreterImpl implements IGroovyInterpreter {
+
 	private static final String SCRIPT_ARCHIVE_FILE_NAME = "script_archive.jar";
 	private static final String GROOVY_EXT_NAME = "groovy";
 	private static final String SCRIPT_SOURCE_STATIC_FILED = "source";
 	private static final String SCRIPT_EXTRACT_DATA_METHOD_NAME = "extractData";
-
-	private GroovyScriptEngine scriptEngine;
-	private HashMap<String, Class<?>> sourceMap;
-	private Logger log;
 	@Inject
 	public IConfigurationManager configurationManager;
 	protected String directory;
+	private GroovyScriptEngine scriptEngine;
+	private HashMap<String, Class<?>> sourceMap;
+	private Logger log;
 
 
 	@Inject
@@ -70,8 +64,6 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 
 	/**
 	 * extract SCRIPT_ARCHIVE_FILE_NAME archive in specified directory
-	 * 
-	 * @param directory
 	 */
 	@SuppressWarnings("unchecked")
 	protected void extractArchiveInDirectory(String directory) {
@@ -88,12 +80,11 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 				ZipEntry entry = zipFileEntries.nextElement();
 				String currentEntry = entry.getName();
 				File destFile = new File(directory, currentEntry);
-				destFile = new File(directory, destFile.getName());
-				// destFile = new File(newPath, destFile.getName());
-				// File destinationParent = destFile.getParentFile();
+				// destFile = new File(directory, destFile.getName());
+				File destinationParent = destFile.getParentFile();
 
 				// create the parent directory structure if needed
-				// destinationParent.mkdirs();
+				destinationParent.mkdirs();
 
 				if (!entry.isDirectory()) {
 					BufferedInputStream is = new BufferedInputStream(zip.getInputStream(entry));
@@ -143,24 +134,32 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 
 	protected void loadScriptsFromDirectory(String directory) {
 		File dir = new File(directory);
-		if (!dir.isDirectory() || !dir.exists())
+		if (!dir.isDirectory() || !dir.exists()) {
 			throw new IllegalStateException(String.format("'%s' not exists.", directory));
+		}
 
 		sourceMap = new HashMap<String, Class<?>>();
 		try {
 			scriptEngine = createGroovyScriptEngine(directory);
 			Collection<File> files =
-					FileUtils.listFiles(new File(directory), new String[] {GROOVY_EXT_NAME}, false);
+					FileUtils.listFiles(new File(directory), new String[]{GROOVY_EXT_NAME}, true);
 
-			if (files.isEmpty())
+			if (files.isEmpty()) {
 				throw new IllegalStateException(
 						String.format("No script files in '%s'.", directory));
+			}
 
 			for (File file : files) {
 				Class<?> scriptClass = loadScriptClassByName(file);
 				String source = getSourceFromScriptClass(scriptClass);
-				sourceMap.put(source.toLowerCase(), scriptClass);
-				log.debug("Loaded script '{}' for '{}'.", file.getName(), source);
+				if (source != null) {
+					sourceMap.put(source.toLowerCase(), scriptClass);
+					log.debug("Loaded script '{}' for source '{}' (as: '{}').", file.getName(), source,
+							scriptClass.getName());
+				} else {
+					log.debug("Loaded misc script '{}' (as: '{}').", file.getName(),
+							scriptClass.getName());
+				}
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
@@ -178,9 +177,6 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 
 	/**
 	 * Получить значение поля "source" из класса.
-	 * 
-	 * @param scriptClass
-	 * @return
 	 */
 	protected String getSourceFromScriptClass(Class<?> scriptClass) {
 		String source;
@@ -191,33 +187,18 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 		} catch (IllegalAccessException | IllegalArgumentException
 				| java.lang.NoSuchFieldException e) {
 			throw new IllegalStateException(
-					String.format("Error while gettings 'source' member (must be public static): ",
+					String.format("Error while getting 'source' member (must be public static): ",
 							e.getMessage()));
 		}
 		return source;
 
 	}
 
-	protected Class<?> loadScriptClassByName(File file) throws ResourceException, ScriptException {
-		String name = file.getName();
-		Class<?> scriptClass = scriptEngine.loadScriptByName(name);
-		return scriptClass;
+	private Class<?> loadScriptClassByName(File file) throws ResourceException, ScriptException {
+		String name = file.getAbsolutePath();
+		return (Class<?>) scriptEngine.loadScriptByName(name);
 	}
 
-
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * ru.nlp_project.story_line2.server_storm.IGroovyInterpreter#executeScript(java.lang.String,
-	 * groovy.lang.Binding)
-	 */
-	@Override
-	public Object executeScript(String script, Binding binding) throws Exception {
-		GroovyShell shell = new GroovyShell(scriptEngine.getGroovyClassLoader(), binding);
-		return shell.evaluate(script);
-	}
 
 	/*
 	 * (non-Javadoc)
@@ -229,26 +210,40 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 	@SuppressWarnings("unchecked")
 	public Map<String, Object> extractData(String source, String webURL, String html)
 			throws IllegalStateException {
-		if (webURL == null)
-			throw new IllegalArgumentException("webURL is null.");
-		if (!sourceMap.containsKey(source.toLowerCase())) {
-			log.error("No script with 'extractData' for source: '{}'", source);
-			throw new IllegalArgumentException("No script for domain: " + source);
+
+		if (webURL == null) {
+			throw new IllegalArgumentException("'webURL' must be not null.");
+		}
+		if (html == null) {
+			throw new IllegalArgumentException("'html' must be not null.");
 		}
 
-		Class<?> class1 = sourceMap.get(source.toLowerCase());
+		Class<?> class1 = getSourceScriptClass(source);
 
 		try {
 			Object instance = class1.newInstance();
 			Method method = class1.getMethod(SCRIPT_EXTRACT_DATA_METHOD_NAME, Object.class,
 					Object.class, Object.class);
-			Map<String, Object> result =
-					(Map<String, Object>) method.invoke(instance, source, webURL, html);
-			return result;
+			return (Map<String, Object>) method.invoke(instance, source, webURL, html);
 		} catch (Exception e) {
 			log.error("Exception while processing {}:{}", source, webURL, e);
 			throw new IllegalStateException(e);
 		}
+
+
+	}
+
+	/**
+	 * Получить класс скрипта по имени источника (source).
+	 *
+	 * @param source имени источника
+	 */
+	private Class<?> getSourceScriptClass(String source) throws IllegalArgumentException {
+		if (!sourceMap.containsKey(source.toLowerCase())) {
+			log.error("No script with 'extractData' for source: '{}'", source.toLowerCase());
+			throw new IllegalArgumentException("No script for source: " + source.toLowerCase());
+		}
+		return sourceMap.get(source.toLowerCase());
 	}
 
 

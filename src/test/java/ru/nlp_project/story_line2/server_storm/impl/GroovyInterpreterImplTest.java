@@ -53,11 +53,12 @@ public class GroovyInterpreterImplTest {
 	@Test
 	public void testInitializeWithSuccess() {
 		testable.initialize();
-		File file = new File (testable.directory, "bnkomi_ru.groovy");
+		File file = new File (testable.directory, "ru/nlp_project/story_line2/crawler_scripts/bnkomi_ru.groovy");
 		Assertions.assertThat(file.exists()).isTrue();
 	}
 
 
+	@Test
 	public void testCallBnkomiRUShouldProcess() throws IOException {
 		testable.initialize();
 		Map<String, Object> extractData = testable.extractData("bnkomi.ru", "", "");

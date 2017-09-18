@@ -31,17 +31,4 @@ public interface IGroovyInterpreter {
 	 */
 	Map<String, Object> extractData(String source, String webURL, String html)
 			throws IllegalStateException;
-
-
-
-	/**
-	 * Выполнить произвольный скрипт.
-	 * 
-	 * @param script содержание скрипта
-	 * @param binding binding для вызова
-	 * @return
-	 * @throws Exception
-	 */
-	Object executeScript(String script, Binding binding) throws Exception;
-
 }
