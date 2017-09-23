@@ -1,18 +1,14 @@
 package ru.nlp_project.story_line2.server_storm.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
+import com.mongodb.BasicDBObject;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
-
 import org.bson.types.ObjectId;
 import org.junit.Test;
-
-import com.mongodb.BasicDBObject;
-
-import static org.junit.Assert.assertEquals;
-
 import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
@@ -31,7 +27,6 @@ public class BSONUtilsTest {
 		assertThat(dbObject.get("_id").getClass()).isEqualTo(Id.class);
 		assertThat(dbObject.get("crawler_id").getClass()).isEqualTo(Id.class);
 
-
 		assertThat(dbObject.toJson())
 				.isEqualTo("{ \"_id\" : { \"$oid\" : \"5882931787a1387bf7a398b6\" }, "
 						+ "\"crawler_id\" : { \"$oid\" : \"5882931787a1387bf7a398b6\" } }");
@@ -47,7 +42,7 @@ public class BSONUtilsTest {
 		ObjectId objectId = new ObjectId(100_0000, 123, (short) 23, 1231231);
 		dbObject.put("crawler_id", objectId);
 		assertThat(dbObject.get("crawler_id").getClass()).isEqualTo(ObjectId.class);
-		
+
 		Map<String, Object> map = BSONUtils.deserialize(dbObject);
 		assertThat(map.get("crawler_id").getClass()).isEqualTo(Id.class);
 		Id id = (Id) map.get("crawler_id");
@@ -84,6 +79,18 @@ public class BSONUtilsTest {
 
 	}
 
+	@Test
+	public void testBsonBinaryDataSerialization() {
+		Map<String, Object> article = NewsArticle.newObject();
+		NewsArticle.imageData(article, new byte[]{1, 2, 3, 4, 5});
 
+		// inserting new '_id' - without serialization
+		BasicDBObject dbObject = BSONUtils.serialize(article);
+		assertThat(dbObject.toString()).isEqualTo("{ \"image_data\" : <Binary Data>}");
+
+		Map<String, Object> newNewsArticle = BSONUtils.deserialize(dbObject);
+		byte[] bytes = NewsArticle.imageData(newNewsArticle);
+		assertThat(bytes).isEqualTo(new byte[]{1, 2, 3, 4, 5});
+	}
 
 }

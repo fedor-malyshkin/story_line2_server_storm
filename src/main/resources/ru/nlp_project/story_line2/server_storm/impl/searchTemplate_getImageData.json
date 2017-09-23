@@ -1,5 +1,5 @@
 {
-    "_source": [ "publication_date"],
+    "_source": [ "image_data", "image_url"],
     "query" : {
         "term" : { "_id" : "${id}" }
         

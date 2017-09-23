@@ -1,5 +1,6 @@
 package ru.nlp_project.story_line2.server_storm;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -20,5 +21,9 @@ public interface ISearchManager {
 	 */
 	List<Map<String, Object>> getNewsHeaders(String source, int count, String lastNewsId);
 
-	List<Map<String, Object>> getNewsArticle(String id);
+	Map<String, Object> getNewsArticle(String id);
+
+	Map<String, Object> getNewsArticleImageData(String newsId, int position);
+
+	void 	updateNewsArticle(Map<String, Object> newsArticle) throws IOException;
 }

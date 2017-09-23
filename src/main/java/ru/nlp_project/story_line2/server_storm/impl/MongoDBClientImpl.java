@@ -5,23 +5,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.ne;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Inject;
-
-import org.bson.BsonType;
-import org.bson.Document;
-import org.bson.codecs.BsonTypeClassMap;
-import org.bson.codecs.configuration.CodecRegistries;
-import org.bson.codecs.configuration.CodecRegistry;
-import org.bson.conversions.Bson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
@@ -34,7 +17,20 @@ import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
-
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.inject.Inject;
+import org.bson.BsonType;
+import org.bson.Document;
+import org.bson.codecs.BsonTypeClassMap;
+import org.bson.codecs.configuration.CodecRegistries;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
@@ -46,12 +42,11 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 /**
  * Клиент mongoDB для сохранения в БД.
- * 
- * 
- * @author fedor
  *
+ * @author fedor
  */
 public class MongoDBClientImpl implements IMongoDBClient {
+
 	@Inject
 	public IConfigurationManager configurationManager;
 	private MongoClient client;
@@ -158,8 +153,9 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		Bson update =
 				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
-		if (item != null)
+		if (item != null) {
 			return BSONUtils.deserialize(item);
+		}
 		return null;
 	}
 
@@ -297,6 +293,30 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		}
 	}
 
+	@Override
+	public void markCrawlerEntryAsArchived(String crawlerEntryId) throws Exception {
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
+		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_ARCHIVED, true);
+	}
+
+	@Override
+	public Map<String, Object> getNextUnpurgedImagesNewsArticle(Date date) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		// in_processed != true AND proceed != true
+		Bson filter = and(ne(NEWS_ARTICLE_FIELD_IMAGES_PURGED, true),
+				ne(NEWS_ARTICLE_FIELD_IN_PROCESS, true),
+				lt(IGroovyInterpreter.EXTR_KEY_PUB_DATE, date));
+		// { "$set" : { "in_process" : "true"}}
+		Bson update =
+				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_IN_PROCESS + "' : true}}");
+		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
+		if (item != null) {
+			return BSONUtils.deserialize(item);
+		}
+		return null;
+
+	}
+
 	// Выбираются записи (!archived && !in_process &&
 	// "дата публикации меньше указанной")
 	@Override
@@ -310,11 +330,11 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		Bson update =
 				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
-		if (item != null)
+		if (item != null) {
 			return BSONUtils.deserialize(item);
+		}
 		return null;
 	}
-
 
 
 	protected void setObjectField(MongoCollection<DBObject> collection, String objectId,
@@ -336,5 +356,16 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	}
 
+	@Override
+	public void unmarkNewsArticleAsInProcess(String newsArticleId) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_IN_PROCESS, false);
+	}
 
+	@Override
+	public void markNewsArticleAsImagesPurged(String newsArticleId) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_IMAGES_PURGED, true);
+
+	}
 }

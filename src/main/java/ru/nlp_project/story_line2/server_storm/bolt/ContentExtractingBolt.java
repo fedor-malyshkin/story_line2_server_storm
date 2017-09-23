@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
+import ru.nlp_project.story_line2.server_storm.IImageDownloader;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
@@ -30,6 +31,9 @@ public class ContentExtractingBolt implements IRichBolt {
 	public IMongoDBClient mongoDBClient;
 	@Inject
 	public IGroovyInterpreter groovyInterpreter;
+	@Inject
+	public IImageDownloader imageDownloader;
+
 	@Inject
 	public IConfigurationManager configurationManager;
 	private Logger log;
@@ -80,10 +84,17 @@ public class ContentExtractingBolt implements IRichBolt {
 			NewsArticle.title(newsArticle, title);
 			NewsArticle.imageUrl(newsArticle, imageUrl);
 			NewsArticle.content(newsArticle, content);
-			// update crawler entry "publicationn_date"
+
+			// update crawler entry "publication_date"
 			if (publicationDate != null) {
 				CrawlerEntry.publicationDate(ce, publicationDate);
 				mongoDBClient.updateCrawlerEntry(ce);
+			}
+
+			// download image
+			if (imageUrl != null && !imageUrl.isEmpty()) {
+				byte[] imageData = imageDownloader.downloadImage(imageUrl);
+				NewsArticle.imageData(newsArticle, imageData);
 			}
 
 			mongoDBClient.updateNewsArticle(newsArticle);

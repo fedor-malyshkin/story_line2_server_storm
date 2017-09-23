@@ -10,6 +10,9 @@ public interface IMongoDBClient {
 	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
 	public static final String CRAWLER_ENTRY_FIELD_ARCHIVED = "archived";
 	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
+	// images_purged
+	public static final String NEWS_ARTICLE_FIELD_IMAGES_PURGED = "images_purged";
+	public static final String NEWS_ARTICLE_FIELD_IN_PROCESS = "in_process";
 
 
 	Map<String, Object> getCrawlerEntry(String id) throws Exception;
@@ -80,4 +83,11 @@ public interface IMongoDBClient {
 	 */
 	String upsertNewsArticleByCrawlerEntry(Map<String, Object> entry) throws Exception;
 
+	void markCrawlerEntryAsArchived(String crawlerEntryId) throws Exception;
+
+	Map<String,Object> getNextUnpurgedImagesNewsArticle(Date date) throws Exception;
+
+	void unmarkNewsArticleAsInProcess(String newsArticleId) throws Exception;
+
+	void markNewsArticleAsImagesPurged(String newsArticleId) throws Exception;
 }

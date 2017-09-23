@@ -5,7 +5,6 @@ import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIEL
 
 import java.util.List;
 import java.util.Map;
-
 import org.apache.storm.trident.operation.Function;
 import org.apache.storm.trident.operation.TridentCollector;
 import org.apache.storm.trident.operation.TridentOperationContext;
@@ -13,9 +12,9 @@ import org.apache.storm.trident.tuple.TridentTuple;
 import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 @SuppressWarnings("unused")
 public class JSONConverterFunction implements Function {
@@ -35,6 +34,7 @@ public class JSONConverterFunction implements Function {
 		ServerStormBuilder.getBuilder(conf).inject(this);
 	}
 
+
 	@Override
 	public void cleanup() {
 
@@ -43,10 +43,31 @@ public class JSONConverterFunction implements Function {
 	@SuppressWarnings("unchecked")
 	@Override
 	public void execute(TridentTuple tuple, TridentCollector collector) {
-		List<Map<String, Object>> newsHeaders =
-				(List<Map<String, Object>>) tuple.getValueByField(TUPLE_FIELD_NAME_RESULT);
-		String json = JSONUtils.serializeList(newsHeaders);
-		collector.emit(new Values(json));
+		String resultingJson;
+		switch (functionName) {
+			case NamesUtil.FUN_NAME_GET_NEWS_ARTICLE: {
+				Map<String, Object> newsArticle =
+						(Map<String, Object>) tuple.getValueByField(TUPLE_FIELD_NAME_RESULT);
+				resultingJson = JSONUtils.serialize(newsArticle);
+				break;
+			}
+			case NamesUtil.FUN_NAME_GET_NEWS_HEADERS: {
+				List<Map<String, Object>> newsHeaders =
+						(List<Map<String, Object>>) tuple.getValueByField(TUPLE_FIELD_NAME_RESULT);
+				resultingJson = JSONUtils.serializeList(newsHeaders);
+				break;
+			}
+			case NamesUtil.FUN_NAME_GET_NEWS_IMAGES: {
+				Map<String, Object> newsArticleImageData =
+						(Map<String, Object>) tuple.getValueByField(TUPLE_FIELD_NAME_RESULT);
+				resultingJson = JSONUtils.serialize(newsArticleImageData);
+				break;
+			}
+			default:
+				throw new IllegalStateException("Unknown function name: " + functionName);
+
+		}
+		collector.emit(new Values(resultingJson));
 	}
 
 }

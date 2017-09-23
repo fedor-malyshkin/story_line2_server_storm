@@ -3,16 +3,11 @@ package ru.nlp_project.story_line2.server_storm.topologies;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.KillOptions;
 import org.junit.After;
@@ -20,7 +15,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
@@ -35,10 +29,11 @@ public class MaintainceTopologyTest {
 
 	private static IMongoDBClient mongoDBClient;
 	private static ISearchManager searchManager;
-	private LocalCluster cluster;
 	private static IGroovyInterpreter groovyInterpreter;
 	private static IConfigurationManager configurationManager;
 	private static ITextAnalyser textAnalyser;
+	private LocalCluster cluster;
+	private HashMap<String, Object> topologyConfig;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -67,10 +62,6 @@ public class MaintainceTopologyTest {
 		reset(textAnalyser);
 	}
 
-	private HashMap<String, Object> topologyConfig;
-
-
-
 	@After
 	public void tearDown() throws InterruptedException {
 		KillOptions options = new KillOptions();
@@ -91,6 +82,8 @@ public class MaintainceTopologyTest {
 		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
 		CrawlerEntry.source(unprocessedCrawlerEntry, source);
 
+		when(mongoDBClient.getNextUnpurgedImagesNewsArticle(any(Date.class)))
+				.thenReturn(null);
 		when(mongoDBClient.getNextUnarchivedCrawlerEntry(any(Date.class)))
 				.thenReturn(unprocessedCrawlerEntry);
 		when(mongoDBClient.getCrawlerEntry(eq(crawlerEntryId))).thenReturn(unprocessedCrawlerEntry);
@@ -100,12 +93,11 @@ public class MaintainceTopologyTest {
 		verify(mongoDBClient, atLeast(1))
 				.updateCrawlerEntry((argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
-						if (CrawlerEntry.rawContent(argument) != null)
+						if (CrawlerEntry.rawContent(argument) != null) {
 							return false;
-						if ((Boolean) argument
-								.get(IMongoDBClient.CRAWLER_ENTRY_FIELD_ARCHIVED) != true)
-							return false;
-						return true;
+						}
+						return (Boolean) argument
+								.get(IMongoDBClient.CRAWLER_ENTRY_FIELD_ARCHIVED);
 					}
 				})));
 	}
@@ -116,9 +108,8 @@ public class MaintainceTopologyTest {
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
 				MaintainceTopology.createTopology());
-		Thread.sleep(1 * 5 * 1_000);
+		Thread.sleep(1 * 10 * 1_000);
 	}
-
 
 
 	private Map<String, Object> createUnprocessedCrawlerEntry() {
@@ -126,7 +117,6 @@ public class MaintainceTopologyTest {
 		CrawlerEntry.id(result, new Id("CrawlerEntry-fake-" + System.currentTimeMillis()));
 		return result;
 	}
-
 
 
 }

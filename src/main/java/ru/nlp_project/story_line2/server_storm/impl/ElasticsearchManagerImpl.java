@@ -22,13 +22,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
+import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.JSONUtils;
 
 public class ElasticsearchManagerImpl implements ISearchManager {
-	private static final String NEWS_KEY_PUBLICATION_DATE = "publication_date";
+
 	private static final String NEWS_KEY_SOURCE = "source";
 	private static final String CLASSPATH_PREFIX = "ru/nlp_project/story_line2/server_storm/impl/";
 	private static final String REQUEST_METHOD_PUT = "PUT";
@@ -36,8 +37,9 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	private static final String REQUEST_METHOD_HEAD = "HEAD";
 	private static final int RESPONSE_SUCCESS = 200;
 	private static final String CP_INDEX_MAPPING = "indexMapping.json";
-	private static final String INDEX_TYPE_NEWS_ARTICLE = "news_article";
+	private static final String INDEX_NEWS_ARTICLE = "news_article";
 	private static final Charset UTF8 = Charset.forName("UTF-8");
+	private static final String REQUEST_METHOD_POST = "POST";
 	@Inject
 	public IConfigurationManager configurationManager;
 	String readIndex;
@@ -53,7 +55,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 	private void createIndex(String indexName) throws IOException {
 		String template = getStringFromClasspath(CP_INDEX_MAPPING);
-		template = String.format(template, INDEX_TYPE_NEWS_ARTICLE);
+		template = String.format(template, INDEX_NEWS_ARTICLE);
 		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
 		restClient.performRequest(REQUEST_METHOD_PUT, "/" + indexName,
 				Collections.emptyMap(), entity);
@@ -74,7 +76,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		}
 
 		RestClient elClient = getRestClient();
-		String endpoint = String.format("/%s/%s/%s", writeIndex, INDEX_TYPE_NEWS_ARTICLE,
+		String endpoint = String.format("/%s/%s/%s", writeIndex, INDEX_NEWS_ARTICLE,
 				NewsArticle.idString(newsArticle));
 		// set id to null to escape exception from ES "is a metadata field and cannot be added
 		// inside a document. Use the index API request parameters."
@@ -83,7 +85,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String json = JSONUtils.serialize(newsArticle);
 		NewsArticle.id(newsArticle, _id);
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
-		// PUT /writeIndex/INDEX_TYPE_NEWS_ARTICLE/ID
+		// PUT /writeIndex/INDEX_NEWS_ARTICLE/ID
 		elClient.performRequest(REQUEST_METHOD_PUT, endpoint,
 				Collections.emptyMap(), entity);
 	}
@@ -146,14 +148,14 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	@Override
 	public List<Map<String, Object>> getNewsHeaders(String source, int count,
 			String lastNewsId) {
-		String lastNewsPublicationDate = null;
-		String template = null;
+		String lastNewsPublicationDate;
+		String template;
 		Map<String, Object> subst = new HashMap<>();
 		subst.put(NEWS_KEY_SOURCE, source);
 
 		if (null != lastNewsId) {
 			lastNewsPublicationDate = getNewsArticlePublicationDate(lastNewsId);
-			subst.put(NEWS_KEY_PUBLICATION_DATE, lastNewsPublicationDate);
+			subst.put(IGroovyInterpreter.EXTR_KEY_PUB_DATE, lastNewsPublicationDate);
 			template = getStringFromClasspath("searchTemplate_getNewsHeadersWithDate.json");
 		} else {
 			template = getStringFromClasspath("searchTemplate_getNewsHeaders.json");
@@ -176,9 +178,9 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 	private String getNewsArticlePublicationDate(String lastNewsId) {
-		List<Map<String, Object>> result = getNewsArticleByTemplate(lastNewsId,
+		List<Map<String, Object>> result = getNewsArticleDataByTemplate(lastNewsId,
 				"searchTemplate_getNewsArticleReturnPublicationDate.json");
-		return (String) result.get(0).get(NEWS_KEY_PUBLICATION_DATE);
+		return (String) result.get(0).get(IGroovyInterpreter.EXTR_KEY_PUB_DATE);
 	}
 
 
@@ -244,45 +246,40 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 	String formatSearchEndpoint() {
-		return String.format("/%s/%s/_search", readIndex, INDEX_TYPE_NEWS_ARTICLE);
+		return String.format("/%s/%s/_search", readIndex, INDEX_NEWS_ARTICLE);
 	}
-
-
 
 
 	/**
 	 * <pre>
-	{
-		"took" : 33,
-			"timed_out" : false,
-			"_shards" : {
-		"total" : 5,
-				"successful" : 5,
-				"failed" : 0
-	},
-		"hits" : {
-		"total" : 1,
-				"max_score" : null,
-				"hits" : [
-		{
-			"_index" : "story_line2_v1",
-				"_type" : "news_article",
-				"_id" : "59b4cde7dd12c0cca3588129",
-				"_score" : null,
-				"_source" : {
-			"publication_date" : "2017-09-10T05:25:00Z"
-		},
-			"sort" : [
-			1505021100000
-        ]
-		}
-    ]
-	}
-	}
- 	 * </pre>
-		*
-	 * @param json
-	 * @return
+	 * {
+	 * "took" : 33,
+	 * "timed_out" : false,
+	 * "_shards" : {
+	 * "total" : 5,
+	 * "successful" : 5,
+	 * "failed" : 0
+	 * },
+	 * "hits" : {
+	 * "total" : 1,
+	 * "max_score" : null,
+	 * "hits" : [
+	 * {
+	 * "_index" : "story_line2_v1",
+	 * "_type" : "news_article",
+	 * "_id" : "59b4cde7dd12c0cca3588129",
+	 * "_score" : null,
+	 * "_source" : {
+	 * "publication_date" : "2017-09-10T05:25:00Z"
+	 * },
+	 * "sort" : [
+	 * 1505021100000
+	 * ]
+	 * }
+	 * ]
+	 * }
+	 * }
+	 * </pre>
 	 */
 	@SuppressWarnings("unchecked")
 	List<Map<String, Object>> extractResults(String json) {
@@ -307,12 +304,62 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 	@Override
-	public List<Map<String, Object>> getNewsArticle(String id) {
-		return getNewsArticleByTemplate(id, "searchTemplate_getNewsArticle.json");
+	public Map<String, Object> getNewsArticle(String id) {
+		List<Map<String, Object>> res = getNewsArticleDataByTemplate(id,
+				"searchTemplate_getNewsArticle.json");
+		if (!res.isEmpty()) {
+			return res.get(0);
+		} else {
+			return Collections.emptyMap();
+		}
+	}
+
+	@Override
+	public Map<String, Object> getNewsArticleImageData(String newsId, int position) {
+		List<Map<String, Object>> res = getNewsArticleDataByTemplate(newsId,
+				"searchTemplate_getImageData.json");
+		if (!res.isEmpty()) {
+			return res.get(0);
+		} else {
+			return Collections.emptyMap();
+		}
+	}
+
+	@Override
+	public void updateNewsArticle(Map<String, Object> newsArticle) throws IOException {
+		if (NewsArticle.id(newsArticle) == null) {
+			throw new IllegalArgumentException("id in object must be set to index it.");
+		}
+
+		RestClient elClient = getRestClient();
+		String endpoint = String.format("/%s/%s/%s/_update", writeIndex, INDEX_NEWS_ARTICLE,
+				NewsArticle.idString(newsArticle));
+		// set id to null to escape exception from ES "is a metadata field and cannot be added
+		// inside a document. Use the index API request parameters."
+		Id _id = NewsArticle.id(newsArticle);
+		NewsArticle.id(newsArticle, null);
+		String json = JSONUtils.serialize(newsArticle);
+		json = String.format("{ \"doc\": {%s}}", json);
+		NewsArticle.id(newsArticle, _id);
+		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
+		// PUT /writeIndex/INDEX_NEWS_ARTICLE/ID
+		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
+				Collections.emptyMap(), entity);
+
 	}
 
 
-	private List<Map<String, Object>> getNewsArticleByTemplate(String id, String templateName) {
+	/***
+	 * Get news article data according to specified template.
+	 *
+	 * IN template usually specified sorting order, fields etc.
+	 *
+	 *
+	 * @param id news article identifier
+	 * @param templateName ElasticSearch request template (with single subst  - id)
+	 * @return list of maps as result
+	 */
+	private List<Map<String, Object>> getNewsArticleDataByTemplate(String id, String templateName) {
 		String template = getStringFromClasspath(templateName);
 		Map<String, Object> subst = new HashMap<>();
 		subst.put("id", id);

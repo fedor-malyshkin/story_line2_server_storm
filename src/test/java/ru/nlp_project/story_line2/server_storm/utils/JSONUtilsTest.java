@@ -1,6 +1,7 @@
 package ru.nlp_project.story_line2.server_storm.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,16 +9,12 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public class JSONUtilsTest {
 
@@ -53,8 +50,6 @@ public class JSONUtilsTest {
 
 	/**
 	 * Проверка поведения при сериализации массива с датой как объектом.
-	 * 
-	 * @throws IOException
 	 */
 	@Test
 	public void testJsonSerialize_FieldWithDatas() throws IOException {
@@ -68,8 +63,6 @@ public class JSONUtilsTest {
 
 	/**
 	 * Проверка поведения при сериализации массива с Id как объектом.
-	 * 
-	 * @throws IOException
 	 */
 	@Test
 	public void testJsonSerialize_FieldWithId() throws IOException {
@@ -83,15 +76,12 @@ public class JSONUtilsTest {
 	}
 
 
-
 	/**
-	 * Проверка поведения сериализации null значений -- не должно быть в результате (индексация
-	 * "_id" в elastic).
-	 * 
+	 * Проверка поведения сериализации null значений -- не должно быть в результате (индексация "_id"
+	 * в elastic).
+	 *
 	 * Не появляется лишь в случае отсуствия клюяа (опции маппера не работают при сериализации
 	 * массивов ассоциативных).
-	 * 
-	 * @throws IOException
 	 */
 	@Test
 	public void testJsonSerialize_NoNullFiledsInResult() throws IOException {
@@ -111,5 +101,51 @@ public class JSONUtilsTest {
 				Thread.currentThread().getContextClassLoader().getResourceAsStream(path);
 		return IOUtils.toString(resourceAsStream, Charset.defaultCharset());
 	}
+
+
+	@Test
+	public void testJsonBinaryDataSerialization_AndDeserialization() {
+		Map<String, Object> article = NewsArticle.newObject();
+		NewsArticle.imageData(article, new byte[]{1, 2, 3, 4, 5});
+
+		String dbObject = JSONUtils.serialize(article);
+		assertThat(dbObject).isEqualTo("{\n"
+				+ "  \"image_data\" : \"AQIDBAU=\"\n"
+				+ "}");
+
+		Map<String, Object> newNewsArticle = JSONUtils.deserialize(dbObject);
+		byte[] bytes = NewsArticle.imageData(newNewsArticle);
+		assertThat(bytes).isEqualTo(new byte[]{1, 2, 3, 4, 5});
+	}
+
+
+	/**
+	 * deserialization with empty string
+	 */
+	@Test
+	public void testJsonBinaryDataDeserialization_EmptyString() {
+		String dbObject = "{\n"
+				+ "  \"image_data\" : \"\"\n"
+				+ "}";
+
+		Map<String, Object> newNewsArticle = JSONUtils.deserialize(dbObject);
+		byte[] bytes = NewsArticle.imageData(newNewsArticle);
+		assertThat(bytes).isEqualTo(new byte[]{});
+	}
+
+	/***
+	 * deserialization with incorrect string
+	 */
+	@Test
+	public void testJsonBinaryDataDeserialization() {
+		String dbObject = "{\n"
+				+ "  \"image_data\" : \"{{{{{{{{{{XXXXXXXXXXX\"\n"
+				+ "}";
+
+		Map<String, Object> newNewsArticle = JSONUtils.deserialize(dbObject);
+		byte[] bytes = NewsArticle.imageData(newNewsArticle);
+		assertThat(bytes).isEqualTo(new byte[]{});
+	}
+
 
 }

@@ -1,19 +1,19 @@
 package ru.nlp_project.story_line2.server_storm.dagger;
 
-import javax.inject.Singleton;
-
 import com.codahale.metrics.MetricRegistry;
-
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
+import ru.nlp_project.story_line2.server_storm.IImageDownloader;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
 import ru.nlp_project.story_line2.server_storm.impl.ConfigurationManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.ElasticsearchManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.GroovyInterpreterImpl;
+import ru.nlp_project.story_line2.server_storm.impl.ImageDownloaderImpl;
 import ru.nlp_project.story_line2.server_storm.impl.MongoDBClientImpl;
 import ru.nlp_project.story_line2.server_storm.impl.TextAnalyserImpl;
 
@@ -54,13 +54,20 @@ public class ServerStormModule {
 		return instance;
 	}
 
+
+	@Provides
+	@Singleton
+	public IImageDownloader provideImageDownloader(ImageDownloaderImpl instance) {
+		instance.initialize();
+		return instance;
+	}
+
 	@Provides
 	@Singleton
 	public ISearchManager provideSearchManager(ElasticsearchManagerImpl instance) {
 		instance.initialize();
 		return instance;
 	}
-
 
 
 	@Provides

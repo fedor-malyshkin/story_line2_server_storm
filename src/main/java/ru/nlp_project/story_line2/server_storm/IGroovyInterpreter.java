@@ -7,6 +7,7 @@ import groovy.lang.Binding;
 
 public interface IGroovyInterpreter {
 	public static final String EXTR_KEY_IMAGE_URL = "image_url";
+	public static final String EXTR_KEY_IMAGE_DATA = "image_data";
 	public static final String EXTR_KEY_PUB_DATE = "publication_date";
 	public static final String EXTR_KEY_TITLE = "title";
 	public static final String EXTR_KEY_CONTENT = "content";

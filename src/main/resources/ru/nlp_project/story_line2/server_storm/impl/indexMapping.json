@@ -51,7 +51,7 @@
 				"path" : { "type" : "keyword" },
 				"source" : { "type" : "keyword"},
 				"image_url" : { "enabled": false },
-				"image_data" : { "enabled": false },
+				"image_data" : { "type" : "keyword" },
 				"title" : { "type" : "text", "include_in_all": true},
 				"url" : { "type" : "keyword"}
 			}

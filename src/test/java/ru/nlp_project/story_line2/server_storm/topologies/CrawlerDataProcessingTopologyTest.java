@@ -1,12 +1,15 @@
 package ru.nlp_project.story_line2.server_storm.topologies;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.KillOptions;
 import org.junit.After;
@@ -14,9 +17,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
+import ru.nlp_project.story_line2.server_storm.IImageDownloader;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
@@ -30,10 +33,12 @@ public class CrawlerDataProcessingTopologyTest {
 
 	private static IMongoDBClient mongoDBClient;
 	private static ISearchManager searchManager;
-	private LocalCluster cluster;
+	private static IImageDownloader imageDownloader;
 	private static IGroovyInterpreter groovyInterpreter;
 	private static IConfigurationManager configurationManager;
 	private static ITextAnalyser textAnalyser;
+	private LocalCluster cluster;
+	private HashMap<String, Object> topologyConfig;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -45,6 +50,9 @@ public class CrawlerDataProcessingTopologyTest {
 		serverStormTestModule.mongoDBClient = mongoDBClient;
 		searchManager = mock(ISearchManager.class);
 		serverStormTestModule.searchManager = searchManager;
+		imageDownloader = mock(IImageDownloader.class);
+		serverStormTestModule.imageDownloader = imageDownloader;
+
 		configurationManager = mock(IConfigurationManager.class);
 		serverStormTestModule.configurationManager = configurationManager;
 		groovyInterpreter = mock(IGroovyInterpreter.class);
@@ -57,12 +65,11 @@ public class CrawlerDataProcessingTopologyTest {
 	public void setUp() {
 		reset(mongoDBClient);
 		reset(searchManager);
+		reset(imageDownloader);
 		reset(configurationManager);
 		reset(groovyInterpreter);
 		reset(textAnalyser);
 	}
-
-	private HashMap<String, Object> topologyConfig;
 
 	protected void startAndWaitTopo() throws InterruptedException {
 		// storm
@@ -144,18 +151,20 @@ public class CrawlerDataProcessingTopologyTest {
 		verify(mongoDBClient, atLeast(1))
 				.updateNewsArticle(argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
-						if (!NewsArticle.content(argument).equalsIgnoreCase("EXTR_KEY_CONTENT"))
+						if (!NewsArticle.content(argument).equalsIgnoreCase("EXTR_KEY_CONTENT")) {
 							return false;
-						if (!NewsArticle.title(argument).equalsIgnoreCase("EXTR_KEY_TITLE"))
+						}
+						if (!NewsArticle.title(argument).equalsIgnoreCase("EXTR_KEY_TITLE")) {
 							return false;
+						}
 						Date date = new Date(1);
-						if (!NewsArticle.publicationDate(argument).equals(date))
+						if (!NewsArticle.publicationDate(argument).equals(date)) {
 							return false;
+						}
 						return true;
 					}
 				}));
 	}
-
 
 
 	private Map<String, Object> createExtractedData() {

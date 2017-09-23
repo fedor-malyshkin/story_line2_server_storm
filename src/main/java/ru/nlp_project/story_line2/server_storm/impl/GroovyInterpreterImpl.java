@@ -176,19 +176,25 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 	}
 
 	/**
-	 * Получить значение поля "source" из класса.
+	 * Получить имя источника (source) для обработки из скрипта.
+	 *
+	 * Ожидаем публичное статчиное текстовое поле, совпадающее с именем источника.
+	 *
+	 * @param scriptClass класс скрипта
 	 */
-	protected String getSourceFromScriptClass(Class<?> scriptClass) {
+	private String getSourceFromScriptClass(Class<?> scriptClass) {
 		String source;
 		try {
 			Field field = scriptClass.getField(SCRIPT_SOURCE_STATIC_FILED);
 			source = (String) field.get(null);
 
+		} catch (java.lang.NoSuchFieldException e) {
+			return null;
 		} catch (IllegalAccessException | IllegalArgumentException
-				| java.lang.NoSuchFieldException e) {
+				e) {
 			throw new IllegalStateException(
-					String.format("Error while getting 'source' member (must be public static): ",
-							e.getMessage()));
+					String.format("Error while gettings 'source' member (must be public static): ",
+							e.getMessage()), e);
 		}
 		return source;
 

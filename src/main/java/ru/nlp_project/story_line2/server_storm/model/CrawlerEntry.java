@@ -17,7 +17,7 @@ public class CrawlerEntry {
 	public final static String TITLE = "title";
 	public final static String URL = "url";
 	public final static String IMAGE_URL = "image_url";
-
+	public final static String IMAGE_DATA = "image_data";
 
 	public static String content(Map<String, Object> entry) {
 		return (String) entry.get(CONTENT);
@@ -132,5 +132,19 @@ public class CrawlerEntry {
 	public static void url(Map<String, Object> entry, String value) {
 		entry.put(URL, value);
 	}
+
+	public static byte[] imageData(Map<String, Object> entry) {
+		Object obj = entry.get(IMAGE_DATA);
+		if (obj == null || obj.getClass() != byte[].class) {
+			return new byte[]{};
+		}
+		return (byte[]) obj;
+	}
+
+	public static void imageData(Map<String, Object> newsArticle, byte[] imageData) {
+		newsArticle.put(IMAGE_DATA, imageData);
+	}
+
+
 
 }

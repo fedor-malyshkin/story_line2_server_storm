@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NewsArticle {
+
 	public final static String ID = "_id";
 	public final static String CRAWLER_ID = "crawler_id";
 	public final static String CREATION_DATE = "creation_date";
@@ -15,6 +16,7 @@ public class NewsArticle {
 	public final static String PUBLICATION_DATE = "publication_date";
 	public final static String SOURCE = "source";
 	public final static String IMAGE_URL = "image_url";
+	public final static String IMAGE_DATA = "image_data";
 
 	public static String content(Map<String, Object> entry) {
 		return (String) entry.get(CONTENT);
@@ -50,8 +52,9 @@ public class NewsArticle {
 
 	public static void id(Map<String, Object> entry, Id id) {
 		entry.put(ID, id);
-		if (null == id)
+		if (null == id) {
 			entry.remove(ID);
+		}
 
 	}
 
@@ -68,9 +71,23 @@ public class NewsArticle {
 	}
 
 
+	public static byte[] imageData(Map<String, Object> entry) {
+		Object obj = entry.get(IMAGE_DATA);
+		if (obj == null || obj.getClass() != byte[].class) {
+			return new byte[]{};
+		}
+		return (byte[]) obj;
+	}
+
+	public static void imageData(Map<String, Object> newsArticle, byte[] imageData) {
+		newsArticle.put(IMAGE_DATA, imageData);
+	}
+
+
 	public static Map<String, Object> newObject(Map<String, Object> crawlerEntry) {
-		if (crawlerEntry == null)
+		if (crawlerEntry == null) {
 			throw new IllegalArgumentException("'crawlerEntry' ath must be not null");
+		}
 		Map<String, Object> result = new HashMap<>();
 		crawlerId(result, CrawlerEntry.id(crawlerEntry));
 		creationDate(result, new Date());
@@ -81,6 +98,7 @@ public class NewsArticle {
 		publicationDate(result, CrawlerEntry.publicationDate(crawlerEntry));
 		source(result, CrawlerEntry.source(crawlerEntry));
 		imageUrl(result, CrawlerEntry.imageUrl(crawlerEntry));
+		imageData(result, CrawlerEntry.imageData(crawlerEntry));
 		return result;
 	}
 
