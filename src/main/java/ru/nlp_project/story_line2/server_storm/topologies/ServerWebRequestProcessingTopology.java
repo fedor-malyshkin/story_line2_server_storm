@@ -57,9 +57,8 @@ public class ServerWebRequestProcessingTopology {
 	protected static void updateConfiguration(String configUrl, Config conf) {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(1);
-		conf.setMaxSpoutPending(500);
 		// время обработки не более 5 минут
-		conf.setMessageTimeoutSecs(60 * 5);
+		conf.setMessageTimeoutSecs(60);
 	}
 
 	protected static StormTopology createTopology(LocalDRPC drpc) {

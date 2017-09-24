@@ -50,8 +50,8 @@
 				"content" : { "type" : "text",  "include_in_all": true },
 				"path" : { "type" : "keyword" },
 				"source" : { "type" : "keyword"},
-				"image_url" : { "enabled": false },
-				"image_data" : { "type" : "keyword" },
+				"image_url" : { "type" : "keyword"},
+				"image_data" : { "type" : "binary" },
 				"title" : { "type" : "text", "include_in_all": true},
 				"url" : { "type" : "keyword"}
 			}

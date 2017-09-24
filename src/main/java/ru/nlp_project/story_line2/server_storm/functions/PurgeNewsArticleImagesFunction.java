@@ -8,7 +8,6 @@ import org.apache.storm.trident.operation.Function;
 import org.apache.storm.trident.operation.TridentCollector;
 import org.apache.storm.trident.operation.TridentOperationContext;
 import org.apache.storm.trident.tuple.TridentTuple;
-import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
@@ -49,7 +48,7 @@ public class PurgeNewsArticleImagesFunction implements Function {
 			newsArticle.put(IMongoDBClient.NEWS_ARTICLE_FIELD_IMAGES_PURGED, true);
 			mongoDBClient.updateNewsArticle(newsArticle);
 			searchManager.updateNewsArticle(newsArticle);
-			collector.emit(new Values(id));
+			// collector.emit(new Values(id));
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

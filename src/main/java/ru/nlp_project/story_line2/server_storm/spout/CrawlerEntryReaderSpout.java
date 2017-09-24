@@ -2,9 +2,7 @@ package ru.nlp_project.story_line2.server_storm.spout;
 
 import java.util.Arrays;
 import java.util.Map;
-
 import javax.inject.Inject;
-
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
@@ -12,20 +10,23 @@ import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.tuple.Fields;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
+import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class CrawlerEntryReaderSpout implements IRichSpout {
+
 	private static final long serialVersionUID = 1L;
-	private SpoutOutputCollector collector;
 	@Inject
 	public IMongoDBClient mongoDBClient;
 	@Inject
+	public ISearchManager searchManager;
+	@Inject
 	public IConfigurationManager configurationManager;
+	private SpoutOutputCollector collector;
 	private Logger log;
 
 	@Override
@@ -33,12 +34,14 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 		try {
 			mongoDBClient.markCrawlerEntryAsProcessedByNewsArticleId((String) msgId);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			System.err.println("ack: " + e);
+			log.error("ack.log" + e.getMessage(), e);
 		}
 	}
 
 	@Override
-	public void activate() {}
+	public void activate() {
+	}
 
 
 	@Override
@@ -47,7 +50,8 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	}
 
 	@Override
-	public void deactivate() {}
+	public void deactivate() {
+	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -60,7 +64,8 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 		try {
 			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticleId((String) msgId);
 		} catch (Exception e) {
-			log.error(e.getMessage(), e);
+			System.err.println("fail: " + e);
+			log.error("fail.log" + e.getMessage(), e);
 		}
 	}
 
@@ -80,7 +85,8 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 			String id = mongoDBClient.upsertNewsArticleByCrawlerEntry(crawlerEntry);
 			collector.emit(Arrays.asList(CrawlerEntry.source(crawlerEntry), id), id);
 		} catch (Exception e) {
-			log.error("---", e);
+			System.err.println("nextTuple: " + e);
+			log.error("nextTuple.log" + e.getMessage(), e);
 		}
 
 	}

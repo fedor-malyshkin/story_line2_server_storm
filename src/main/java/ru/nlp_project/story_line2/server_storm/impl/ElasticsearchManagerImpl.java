@@ -97,6 +97,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		return restClient;
 	}
 
+	@Override
 	public void initialize() {
 		MasterConfiguration configuration = configurationManager.getMasterConfiguration();
 		readIndex = configurationManager.getMasterConfiguration().elasticsearchReadAlias;
@@ -107,7 +108,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			initializeIndex();
 			initialized = true;
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			logger.error("Initialization error: '{}', {}" e.getMessage(), e);
 			initialized = false;
 			restClient = null;
 		}
@@ -250,37 +251,6 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 
-	/**
-	 * <pre>
-	 * {
-	 * "took" : 33,
-	 * "timed_out" : false,
-	 * "_shards" : {
-	 * "total" : 5,
-	 * "successful" : 5,
-	 * "failed" : 0
-	 * },
-	 * "hits" : {
-	 * "total" : 1,
-	 * "max_score" : null,
-	 * "hits" : [
-	 * {
-	 * "_index" : "story_line2_v1",
-	 * "_type" : "news_article",
-	 * "_id" : "59b4cde7dd12c0cca3588129",
-	 * "_score" : null,
-	 * "_source" : {
-	 * "publication_date" : "2017-09-10T05:25:00Z"
-	 * },
-	 * "sort" : [
-	 * 1505021100000
-	 * ]
-	 * }
-	 * ]
-	 * }
-	 * }
-	 * </pre>
-	 */
 	@SuppressWarnings("unchecked")
 	List<Map<String, Object>> extractResults(String json) {
 		List<Map<String, Object>> result = new ArrayList<>();
@@ -339,7 +309,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		Id _id = NewsArticle.id(newsArticle);
 		NewsArticle.id(newsArticle, null);
 		String json = JSONUtils.serialize(newsArticle);
-		json = String.format("{ \"doc\": {%s}}", json);
+		json = String.format("{ \"doc\": %s }", json);
 		NewsArticle.id(newsArticle, _id);
 		HttpEntity entity = new NStringEntity(json, ContentType.APPLICATION_JSON);
 		// PUT /writeIndex/INDEX_NEWS_ARTICLE/ID

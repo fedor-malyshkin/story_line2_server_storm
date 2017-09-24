@@ -78,7 +78,7 @@ public class CrawlerDataProcessingTopologyTest {
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				CrawlerDataProcessingTopology.createTopology());
-		Thread.sleep(1 * 5 * 1_000);
+		Thread.sleep(1 * 15 * 1_000);
 	}
 
 	@After
@@ -148,7 +148,7 @@ public class CrawlerDataProcessingTopologyTest {
 				.thenReturn(extractedData);
 
 		startAndWaitTopo();
-		verify(mongoDBClient, atLeast(1))
+		verify(mongoDBClient, atLeastOnce())
 				.updateNewsArticle(argThat(new ArgumentMatcher<Map<String, Object>>() {
 					public boolean matches(Map<String, Object> argument) {
 						if (!NewsArticle.content(argument).equalsIgnoreCase("EXTR_KEY_CONTENT")) {

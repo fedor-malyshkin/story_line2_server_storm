@@ -50,7 +50,7 @@ public class ArchiveCrawlerEntryFunction implements Function {
 			CrawlerEntry.rawContent(crawlerEntry, null);
 			crawlerEntry.put(IMongoDBClient.CRAWLER_ENTRY_FIELD_ARCHIVED, true);
 			mongoDBClient.updateCrawlerEntry(crawlerEntry);
-			collector.emit(new Values(id));
+			// collector.emit(new Values());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

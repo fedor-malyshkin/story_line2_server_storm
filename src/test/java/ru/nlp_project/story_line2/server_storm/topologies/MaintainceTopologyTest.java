@@ -2,7 +2,6 @@ package ru.nlp_project.story_line2.server_storm.topologies;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import java.util.Date;
@@ -13,6 +12,7 @@ import org.apache.storm.generated.KillOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
@@ -24,6 +24,7 @@ import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormTestModule;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
+import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 
 public class MaintainceTopologyTest {
 
@@ -73,12 +74,12 @@ public class MaintainceTopologyTest {
 
 	@Test
 	// успешное, стандартное прохождение пакета через топологию
-	public void testSuccessfullPass() throws Exception {
+	public void testSuccessfullPass_ArchiveCrawlerEntry() throws Exception {
 		// запросить CE
 		String crawlerEntryId = "fake-crawlerEntryId";
 		String source = "some source";
 		String crawlerEntryRawValue = "some raw content";
-		Map<String, Object> unprocessedCrawlerEntry = createUnprocessedCrawlerEntry();
+		Map<String, Object> unprocessedCrawlerEntry = createUnprocessedCrawlerEntry(crawlerEntryId);
 		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
 		CrawlerEntry.source(unprocessedCrawlerEntry, source);
 
@@ -86,7 +87,8 @@ public class MaintainceTopologyTest {
 				.thenReturn(null);
 		when(mongoDBClient.getNextUnarchivedCrawlerEntry(any(Date.class)))
 				.thenReturn(unprocessedCrawlerEntry);
-		when(mongoDBClient.getCrawlerEntry(eq(crawlerEntryId))).thenReturn(unprocessedCrawlerEntry);
+		when(mongoDBClient.getCrawlerEntry(startsWith(crawlerEntryId)))
+				.thenReturn(unprocessedCrawlerEntry);
 
 		startAndWaitTopo();
 
@@ -102,6 +104,35 @@ public class MaintainceTopologyTest {
 				})));
 	}
 
+
+	@Test
+	// успешное, стандартное прохождение пакета через топологию
+	public void testSuccessfullPass_PurgeNewsArticleImagesData() throws Exception {
+		String unpurgedId = "fake-newsArticleId";
+		Map<String, Object> unpurgedNewsArticle = createUnpurgedNewsArticle(unpurgedId);
+
+		when(mongoDBClient.getNextUnpurgedImagesNewsArticle(any(Date.class)))
+				.thenReturn(unpurgedNewsArticle);
+		when(mongoDBClient.getNextUnarchivedCrawlerEntry(any(Date.class)))
+				.thenReturn(null);
+		when(mongoDBClient.getNewsArticle(startsWith(unpurgedId))).thenReturn(unpurgedNewsArticle);
+
+		startAndWaitTopo();
+
+		verify(mongoDBClient, atLeastOnce())
+				.updateNewsArticle((argThat(new ArgumentMatcher<Map<String, Object>>() {
+					public boolean matches(Map<String, Object> argument) {
+						if (NewsArticle.imageData(argument) == new byte[]{}) {
+							return false;
+						}
+						return (Boolean) argument
+								.get(IMongoDBClient.NEWS_ARTICLE_FIELD_IMAGES_PURGED);
+					}
+				})));
+		verify(searchManager, atLeastOnce()).updateNewsArticle(any(Map.class));
+	}
+
+
 	protected void startAndWaitTopo() throws InterruptedException {
 		// storm
 		cluster = new LocalCluster();
@@ -112,9 +143,16 @@ public class MaintainceTopologyTest {
 	}
 
 
-	private Map<String, Object> createUnprocessedCrawlerEntry() {
+	private Map<String, Object> createUnprocessedCrawlerEntry(String id) {
 		Map<String, Object> result = CrawlerEntry.newObject();
-		CrawlerEntry.id(result, new Id("CrawlerEntry-fake-" + System.currentTimeMillis()));
+		CrawlerEntry.id(result, new Id(id + System.currentTimeMillis()));
+		return result;
+	}
+
+
+	private Map<String, Object> createUnpurgedNewsArticle(String id) {
+		Map<String, Object> result = NewsArticle.newObject();
+		NewsArticle.id(result, new Id(id + +System.currentTimeMillis()));
 		return result;
 	}
 

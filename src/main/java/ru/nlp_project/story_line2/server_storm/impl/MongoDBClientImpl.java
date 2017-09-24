@@ -96,25 +96,22 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	private void createStorylineIndexes() {
 		try {
 			MongoCollection<DBObject> collection = getStorylineCollection();
-			// source
-			BasicDBObject obj = new BasicDBObject();
-			obj.put("source", 1);
-			// bckg
-			IndexOptions ndx = new IndexOptions();
-			ndx.background(true);
-			collection.createIndex(obj, ndx);
-			// path
-			obj = new BasicDBObject();
-			obj.put("path", 1);
-			// bckg
-			ndx = new IndexOptions();
-			ndx.background(true);
-			collection.createIndex(obj, ndx);
+			List<String> fields = Arrays.asList("path", "source",
+					NEWS_ARTICLE_FIELD_IMAGES_PURGED, NEWS_ARTICLE_FIELD_IN_PROCESS);
+			for (String field : fields) {
+				// in_process
+				BasicDBObject obj = new BasicDBObject();
+				obj.put(field, 1);
+				// bckg
+				IndexOptions ndx = new IndexOptions();
+				ndx.background(true);
+				collection.createIndex(obj, ndx);
+			}
 			// _id (background is not valid keyword!!!)
-			obj = new BasicDBObject();
+			BasicDBObject obj = new BasicDBObject();
 			obj.put(FIELD_ID, 1);
 			// bckg
-			ndx = new IndexOptions();
+			IndexOptions ndx = new IndexOptions();
 			collection.createIndex(obj, ndx);
 		} catch (Exception e) {
 			log.error("Error while creating index: '{}'", e.getMessage(), e);
@@ -170,6 +167,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		return storylineCollection;
 	}
 
+	@Override
 	public void initialize() {
 		registerCodecs();
 		MongoClientURI mongoClientURI = new MongoClientURI(

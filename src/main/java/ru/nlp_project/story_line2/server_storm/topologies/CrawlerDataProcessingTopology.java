@@ -49,9 +49,8 @@ public class CrawlerDataProcessingTopology {
 		Config conf = new Config();
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(2);
-		conf.setMaxSpoutPending(500);
 		// время обработки не более 5 минут
-		conf.setMessageTimeoutSecs(60 * 5);
+		conf.setMessageTimeoutSecs(60);
 
 		StormSubmitter.submitTopology(TOPOLOGY_NAME, conf, createTopology());
 	}

@@ -90,4 +90,6 @@ public interface IMongoDBClient {
 	void unmarkNewsArticleAsInProcess(String newsArticleId) throws Exception;
 
 	void markNewsArticleAsImagesPurged(String newsArticleId) throws Exception;
+
+	void initialize();
 }
