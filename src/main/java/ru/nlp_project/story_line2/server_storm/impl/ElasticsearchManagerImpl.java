@@ -108,7 +108,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			initializeIndex();
 			initialized = true;
 		} catch (Exception e) {
-			logger.error("Initialization error: '{}', {}" e.getMessage(), e);
+			logger.error("Initialization error: '{}', {}",  e.getMessage(), e);
 			initialized = false;
 			restClient = null;
 		}
