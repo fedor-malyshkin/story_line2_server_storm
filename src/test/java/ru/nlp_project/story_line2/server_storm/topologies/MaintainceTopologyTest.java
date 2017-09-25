@@ -139,7 +139,7 @@ public class MaintainceTopologyTest {
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
 				MaintainceTopology.createTopology());
-		Thread.sleep(1 * 10 * 1_000);
+		Thread.sleep(1 * 5 * 1_000);
 	}
 
 

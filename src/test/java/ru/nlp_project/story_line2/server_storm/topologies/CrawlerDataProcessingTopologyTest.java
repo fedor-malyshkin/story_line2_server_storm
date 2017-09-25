@@ -78,7 +78,7 @@ public class CrawlerDataProcessingTopologyTest {
 		topologyConfig = new HashMap<String, Object>();
 		cluster.submitTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				CrawlerDataProcessingTopology.createTopology());
-		Thread.sleep(1 * 15 * 1_000);
+		Thread.sleep(1 * 5 * 1_000);
 	}
 
 	@After

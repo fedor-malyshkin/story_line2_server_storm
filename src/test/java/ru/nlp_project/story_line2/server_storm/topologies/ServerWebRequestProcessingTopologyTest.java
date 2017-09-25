@@ -154,7 +154,7 @@ public class ServerWebRequestProcessingTopologyTest {
 		cluster = new LocalCluster();
 		cluster.submitTopology(ServerWebRequestProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				ServerWebRequestProcessingTopology.createTopology(drpc));
-		Thread.sleep(1 * 10 * 1_000);
+		Thread.sleep(1 * 5 * 1_000);
 	}
 
 }
