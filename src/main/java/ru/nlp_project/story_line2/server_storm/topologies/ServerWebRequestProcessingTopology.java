@@ -27,8 +27,7 @@ import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunctio
  * <p/>
  * Run with JVM args "-Dru.nlp_project.story_line2.server_storm.config=file:${workspace_loc:server_storm}/src/main/resources/ru/nlp_project/story_line2/server_storm/server_storm_config.yml"
  * <p/>
- * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar  ru.nlp_project.story_line2.server_storm.topologies.ServerWebRequestProcessingTopology
- * http://datahouse01.nlp-project.ru:9000/server_storm.yaml
+ * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar  ru.nlp_project.story_line2.server_storm.topologies.ServerWebRequestProcessingTopology http://datahouse01.nlp-project.ru:9000/server_storm.yaml
  * <p/>
  *
  * @author fedor
@@ -78,9 +77,9 @@ public class ServerWebRequestProcessingTopology {
 		//articles
 		createNewDRPCStream(topo, FUN_NAME_GET_NEWS_ARTICLE, drpc)
 				.each(new Fields(TUPLE_FIELD_NAME_ARGS),
-						new NewsArticleFinderFunction(FUN_NAME_GET_NEWS_IMAGES),
+						new NewsArticleFinderFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_RESULT))
-				.name("elastic-extractor-" + FUN_NAME_GET_NEWS_IMAGES)
+				.name("elastic-extractor-" + FUN_NAME_GET_NEWS_ARTICLE)
 				.each(new Fields(TUPLE_FIELD_NAME_RESULT),
 						new JSONConverterFunction(FUN_NAME_GET_NEWS_ARTICLE),
 						new Fields(TUPLE_FIELD_NAME_JSON))
