@@ -3,9 +3,7 @@ package ru.nlp_project.story_line2.server_storm.bolt;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
-
 import javax.inject.Inject;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
@@ -14,7 +12,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
@@ -25,21 +22,22 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ContentExtractingBolt implements IRichBolt {
+
 	private static final long serialVersionUID = 1L;
-	private OutputCollector collector;
 	@Inject
 	public IMongoDBClient mongoDBClient;
 	@Inject
 	public IGroovyInterpreter groovyInterpreter;
 	@Inject
 	public IImageDownloader imageDownloader;
-
 	@Inject
 	public IConfigurationManager configurationManager;
+	private OutputCollector collector;
 	private Logger log;
 
 	@Override
-	public void cleanup() {}
+	public void cleanup() {
+	}
 
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
@@ -80,17 +78,25 @@ public class ContentExtractingBolt implements IRichBolt {
 			String imageUrl = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_IMAGE_URL);
 			String content = getTextSafe(data, IGroovyInterpreter.EXTR_KEY_CONTENT);
 
-			NewsArticle.publicationDate(newsArticle, publicationDate);
-			NewsArticle.title(newsArticle, title);
-			NewsArticle.imageUrl(newsArticle, imageUrl);
-			NewsArticle.content(newsArticle, content);
-
-			// update crawler entry "publication_date"
 			if (publicationDate != null) {
+				NewsArticle.publicationDate(newsArticle, publicationDate);
+				// update crawler entry "publication_date"
 				CrawlerEntry.publicationDate(ce, publicationDate);
 				mongoDBClient.updateCrawlerEntry(ce);
+
+			}
+			if (title != null) {
+				NewsArticle.title(newsArticle, title);
+			}
+			if (imageUrl != null) {
+				NewsArticle.imageUrl(newsArticle, imageUrl);
+			}
+			if (content != null) {
+				NewsArticle.content(newsArticle, content);
 			}
 
+			// получаем повторно, т.к. ссылка могла быть получена при парсинге (и установлена), а могла и быть ранее (и сохранилась)
+			imageUrl = NewsArticle.imageUrl(newsArticle);
 			// download image
 			if (imageUrl != null && !imageUrl.isEmpty()) {
 				byte[] imageData = imageDownloader.downloadImage(imageUrl);
@@ -115,19 +121,21 @@ public class ContentExtractingBolt implements IRichBolt {
 
 	private Date getDateSafe(Map<String, Object> data, String key) {
 		Object object = data.get(key);
-		if (object != null)
+		if (object != null) {
 			return (Date) object;
-		else
+		} else {
 			return null;
+		}
 	}
 
 
 	private String getTextSafe(Map<String, Object> data, String key) {
 		Object object = data.get(key);
-		if (object != null)
+		if (object != null) {
 			return object.toString();
-		else
+		} else {
 			return null;
+		}
 	}
 
 

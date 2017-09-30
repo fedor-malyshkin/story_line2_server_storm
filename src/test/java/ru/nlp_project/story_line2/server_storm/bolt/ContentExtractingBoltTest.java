@@ -1,11 +1,13 @@
 package ru.nlp_project.story_line2.server_storm.bolt;
 
+import static junit.framework.TestCase.fail;
 import static org.mockito.Mockito.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runners.JUnit4;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
@@ -58,28 +60,6 @@ public class ContentExtractingBoltTest {
 	}
 
 
-	@Test
-	public void testExecute_EmptyRawContent() throws Exception {
-		TupleStub tuple = new TestUtils.TupleStub();
-		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
-		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
-
-		Map<String, Object> na = NewsArticle.newObject();
-		NewsArticle.crawlerId(na, new Id("_crawlerId"));
-		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(na);
-
-		Map<String, Object> ce = CrawlerEntry.newObject();
-		CrawlerEntry.rawContent(ce, null);
-		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
-
-		// exec
-		testable.execute(tuple);
-
-		verify(mongoDBClient).getNewsArticle(anyString());
-		verify(mongoDBClient).getCrawlerEntry(anyString());
-		verifyZeroInteractions(groovyInterpreter);
-	}
-
 
 	@Test
 	public void testExecute_ExistRawContent() throws Exception {
@@ -110,14 +90,18 @@ public class ContentExtractingBoltTest {
 	}
 
 
+	/**
+	 * @throws Exception
+	 */
 	@Test
-	public void testExecute_RawContentWithImage() throws Exception {
+	public void testExecute_KeepCrawlerEntryImageUrl() throws Exception {
 		TupleStub tuple = new TestUtils.TupleStub();
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
 
 		Map<String, Object> na = NewsArticle.newObject();
 		NewsArticle.crawlerId(na, new Id("_crawlerId"));
+		NewsArticle.imageUrl(na, "image_url_original");
 		when(mongoDBClient.getNewsArticle(anyString())).thenReturn(na);
 
 		Map<String, Object> ce = CrawlerEntry.newObject();
@@ -127,7 +111,8 @@ public class ContentExtractingBoltTest {
 		when(mongoDBClient.getCrawlerEntry(anyString())).thenReturn(ce);
 
 		Map<String, Object> data = new HashMap<>();
-		data.put(IGroovyInterpreter.EXTR_KEY_IMAGE_URL, "some url to image");
+		// must be at least one
+		data.put("content", "some content");
 		when(groovyInterpreter.extractData(anyString(), anyString(), eq("some text")))
 				.thenReturn(data);
 		// exec
@@ -136,7 +121,7 @@ public class ContentExtractingBoltTest {
 		verify(mongoDBClient).getNewsArticle(anyString());
 		verify(mongoDBClient).getCrawlerEntry(anyString());
 		verify(groovyInterpreter).extractData(anyString(), anyString(), eq("some text"));
-		verify(imageDownloader, times(1)).downloadImage(eq("some url to image"));
+		verify(imageDownloader, atLeastOnce()).downloadImage(eq("image_url_original"));
 	}
 
 }

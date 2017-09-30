@@ -1,8 +1,10 @@
 package ru.nlp_project.story_line2.server_storm.spout;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
+import org.apache.storm.Config;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
@@ -71,7 +73,11 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
-		return null;
+		Map<String, Object> conf = new HashMap<>();
+		// 1 minute
+		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60 );
+		return conf;
+
 	}
 
 	@Override

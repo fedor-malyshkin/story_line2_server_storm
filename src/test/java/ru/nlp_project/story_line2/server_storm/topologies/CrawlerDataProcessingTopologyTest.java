@@ -118,7 +118,7 @@ public class CrawlerDataProcessingTopologyTest {
 
 		startAndWaitTopo();
 
-		verify(mongoDBClient, never()).updateNewsArticle(any());
+		verify(groovyInterpreter, never()).extractData(eq(source), any(), eq(crawlerEntryRawValue));
 	}
 
 	@Test
