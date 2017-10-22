@@ -246,6 +246,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		return result;
 	}
 
+
 	String formatSearchEndpoint() {
 		return String.format("/%s/%s/_search", readIndex, INDEX_NEWS_ARTICLE);
 	}

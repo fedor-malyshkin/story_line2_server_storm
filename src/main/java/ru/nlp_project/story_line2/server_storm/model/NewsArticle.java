@@ -1,78 +1,69 @@
 package ru.nlp_project.story_line2.server_storm.model;
 
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.*;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 public class NewsArticle {
 
-	public final static String ID = "_id";
-	public final static String CRAWLER_ID = "crawler_id";
-	public final static String CREATION_DATE = "creation_date";
-	public final static String CONTENT = "content";
-	public final static String PATH = "path";
-	public final static String TITLE = "title";
-	public final static String URL = "url";
-	public final static String PUBLICATION_DATE = "publication_date";
-	public final static String SOURCE = "source";
-	public final static String IMAGE_URL = "image_url";
-	public final static String IMAGE_DATA = "image_data";
 
 	public static String content(Map<String, Object> entry) {
-		return (String) entry.get(CONTENT);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_CONTENT);
 	}
 
 	public static void content(Map<String, Object> newsArticle, String content) {
-		newsArticle.put(CONTENT, content);
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_CONTENT, content);
 	}
 
 	public static Id crawlerId(Map<String, Object> newsArticle) {
-		return (Id) newsArticle.get(CRAWLER_ID);
+		return (Id) newsArticle.get(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID);
 	}
 
 	public static void crawlerId(Map<String, Object> entry, Id crawlerId) {
-		entry.put(CRAWLER_ID, crawlerId);
+		entry.put(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID, crawlerId);
 	}
 
 	public static String crawlerIdString(Map<String, Object> newsArticle) {
-		return newsArticle.get(CRAWLER_ID).toString();
+		return newsArticle.get(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID).toString();
 	}
 
 	public static Date creationDate(Map<String, Object> entry) {
-		return (Date) entry.get(CREATION_DATE);
+		return (Date) entry.get(NEWS_ARTICLE_FIELD_NAME_CREATION_DATE);
 	}
 
 	public static void creationDate(Map<String, Object> entry, Date creationDate) {
-		entry.put(CREATION_DATE, creationDate);
+		entry.put(NEWS_ARTICLE_FIELD_NAME_CREATION_DATE, creationDate);
 	}
 
 	public static Id id(Map<String, Object> newsArticle) {
-		return (Id) newsArticle.get(ID);
+		return (Id) newsArticle.get(FIELD_NAME_ID);
 	}
 
 	public static void id(Map<String, Object> entry, Id id) {
-		entry.put(ID, id);
+		entry.put(FIELD_NAME_ID, id);
 		if (null == id) {
-			entry.remove(ID);
+			entry.remove(FIELD_NAME_ID);
 		}
 
 	}
 
 	public static String idString(Map<String, Object> newsArticle) {
-		return newsArticle.get(ID).toString();
+		return newsArticle.get(FIELD_NAME_ID).toString();
 	}
 
 	public static String imageUrl(Map<String, Object> entry) {
-		return (String) entry.get(IMAGE_URL);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_IMAGE_URL);
 	}
 
 	public static void imageUrl(Map<String, Object> newsArticle, String imageUrl) {
-		newsArticle.put(IMAGE_URL, imageUrl);
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_IMAGE_URL, imageUrl);
 	}
 
 
 	public static byte[] imageData(Map<String, Object> entry) {
-		Object obj = entry.get(IMAGE_DATA);
+		Object obj = entry.get(NEWS_ARTICLE_FIELD_NAME_IMAGE_DATA);
 		if (obj == null || obj.getClass() != byte[].class) {
 			return new byte[]{};
 		}
@@ -80,7 +71,7 @@ public class NewsArticle {
 	}
 
 	public static void imageData(Map<String, Object> newsArticle, byte[] imageData) {
-		newsArticle.put(IMAGE_DATA, imageData);
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_IMAGE_DATA, imageData);
 	}
 
 
@@ -109,44 +100,44 @@ public class NewsArticle {
 
 
 	public static String path(Map<String, Object> entry) {
-		return (String) entry.get(PATH);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_PATH);
 	}
 
 	public static void path(Map<String, Object> entry, String path) {
-		entry.put(PATH, path);
+		entry.put(NEWS_ARTICLE_FIELD_NAME_PATH, path);
 	}
 
 	public static Date publicationDate(Map<String, Object> entry) {
-		return (Date) entry.get(PUBLICATION_DATE);
+		return (Date) entry.get(NEWS_ARTICLE_FIELD_NAME_PUBLICATION_DATE);
 	}
 
 	public static void publicationDate(Map<String, Object> newsArticle, Date publicationDate) {
-		newsArticle.put(PUBLICATION_DATE, publicationDate);
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_PUBLICATION_DATE, publicationDate);
 	}
 
 	public static String source(Map<String, Object> entry) {
-		return (String) entry.get(SOURCE);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_SOURCE);
 	}
 
 	public static void source(Map<String, Object> entry, String source) {
-		entry.put(SOURCE, source);
+		entry.put(NEWS_ARTICLE_FIELD_NAME_SOURCE, source);
 
 	}
 
 	public static String title(Map<String, Object> entry) {
-		return (String) entry.get(TITLE);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_TITLE);
 	}
 
 	public static void title(Map<String, Object> newsArticle, String title) {
-		newsArticle.put(TITLE, title);
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_TITLE, title);
 	}
 
 	public static String url(Map<String, Object> entry) {
-		return (String) entry.get(URL);
+		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_URL);
 	}
 
 	public static void url(Map<String, Object> entry, String url) {
-		entry.put(URL, url);
+		entry.put(NEWS_ARTICLE_FIELD_NAME_URL, url);
 	}
 
 }

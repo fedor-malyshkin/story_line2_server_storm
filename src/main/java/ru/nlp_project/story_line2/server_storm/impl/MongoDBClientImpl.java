@@ -4,6 +4,12 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.ne;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_ID;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_IN_PROCESS;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_PROCESSED;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED;
 
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBObject;
@@ -68,8 +74,9 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	private void createCrawlerIndexes() {
 		try {
 			MongoCollection<DBObject> collection = getCrawlerCollection();
-			List<String> fields = Arrays.asList(FIELD_CRAWLER_ID, CRAWLER_ENTRY_FIELD_PROCESSED,
-					CRAWLER_ENTRY_FIELD_ARCHIVED, CRAWLER_ENTRY_FIELD_IN_PROCESS,
+			List<String> fields = Arrays.asList(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID,
+					FIELD_NAME_PROCESSED,
+					CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, FIELD_NAME_IN_PROCESS,
 					IGroovyInterpreter.EXTR_KEY_PUB_DATE);
 			for (String field : fields) {
 				// in_process
@@ -82,7 +89,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			}
 			// _id (background is not valid keyword!!!)
 			BasicDBObject obj = new BasicDBObject();
-			obj.put(FIELD_ID, 1);
+			obj.put(FIELD_NAME_ID, 1);
 			// bckg
 			IndexOptions ndx = new IndexOptions();
 			collection.createIndex(obj, ndx);
@@ -96,8 +103,9 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	private void createStorylineIndexes() {
 		try {
 			MongoCollection<DBObject> collection = getStorylineCollection();
-			List<String> fields = Arrays.asList("path", "source",
-					NEWS_ARTICLE_FIELD_IMAGES_PURGED, NEWS_ARTICLE_FIELD_IN_PROCESS);
+			List<String> fields = Arrays.asList(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_PATH,
+					NamesUtil.CRAWLER_ENTRY_FIELD_NAME_SOURCE,
+					NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, FIELD_NAME_IN_PROCESS);
 			for (String field : fields) {
 				// in_process
 				BasicDBObject obj = new BasicDBObject();
@@ -109,7 +117,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			}
 			// _id (background is not valid keyword!!!)
 			BasicDBObject obj = new BasicDBObject();
-			obj.put(FIELD_ID, 1);
+			obj.put(FIELD_NAME_ID, 1);
 			// bckg
 			IndexOptions ndx = new IndexOptions();
 			collection.createIndex(obj, ndx);
@@ -134,7 +142,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public Map<String, Object> getNewsArticle(String newsArticleId) throws Exception {
 		MongoCollection<DBObject> serverCollections = getStorylineCollection();
-		Bson filter = eq(FIELD_ID, new Id(newsArticleId));
+		Bson filter = eq(FIELD_NAME_ID, new Id(newsArticleId));
 		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
 		DBObject dbObject = iter.first();
 		return BSONUtils.deserialize(dbObject);
@@ -144,11 +152,11 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	public Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		// in_processed != true AND proceed != true
-		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
-				ne(CRAWLER_ENTRY_FIELD_PROCESSED, true), ne(CRAWLER_ENTRY_FIELD_ARCHIVED, true));
+		Bson filter = and(ne(FIELD_NAME_IN_PROCESS, true),
+				ne(FIELD_NAME_PROCESSED, true), ne(CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
-				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
+				BasicDBObject.parse("{$set: {'" + FIELD_NAME_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
 		if (item != null) {
 			return BSONUtils.deserialize(item);
@@ -204,15 +212,15 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	public void markCrawlerEntryAsProcessedByNewsArticleId(String newsArticleId) throws Exception {
 		MongoCollection<DBObject> storylineCollections = getStorylineCollection();
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, new Id(newsArticleId));
+		Bson filter = eq(FIELD_NAME_ID, new Id(newsArticleId));
 		FindIterable<DBObject> news = storylineCollections.find(filter).limit(1);
 		DBObject object = news.first();
 		// mark crawler news as processed
 		Id crawlerId = (Id) object.get("crawler_id");
-		filter = eq(FIELD_ID, crawlerId);
+		filter = eq(FIELD_NAME_ID, crawlerId);
 		// { "$set" : { "in_process" : "false", "processed" : "true" }}
-		Bson setProcessed = BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_PROCESSED
-				+ "' : true, '" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : false }}");
+		Bson setProcessed = BasicDBObject.parse("{$set: {'" + FIELD_NAME_PROCESSED
+				+ "' : true, '" + FIELD_NAME_IN_PROCESS + "' : false }}");
 		crawlerCollections.findOneAndUpdate(filter, setProcessed);
 	}
 
@@ -227,21 +235,21 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		Map<String, Object> newsArticle = getNewsArticle(newsArticleId);
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
 		setObjectField(crawlerCollections, NewsArticle.crawlerIdString(newsArticle),
-				CRAWLER_ENTRY_FIELD_IN_PROCESS, false);
+				FIELD_NAME_IN_PROCESS, false);
 	}
 
 
 	@Override
 	public void unmarkCrawlerEntryAsInProcess(String crawlerEntryId) throws Exception {
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_IN_PROCESS, false);
+		setObjectField(crawlerCollections, crawlerEntryId, FIELD_NAME_IN_PROCESS, false);
 	}
 
 
 	@Override
 	public void updateCrawlerEntry(Map<String, Object> entry) throws Exception {
 		MongoCollection<DBObject> crawlerCollection = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, CrawlerEntry.id(entry));
+		Bson filter = eq(FIELD_NAME_ID, CrawlerEntry.id(entry));
 		BasicDBObject dbObject = BSONUtils.serialize(entry);
 		Bson newDocument = new Document("$set", dbObject);
 		crawlerCollection.findOneAndUpdate(filter, newDocument);
@@ -251,7 +259,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public void updateNewsArticle(Map<String, Object> newsArticle) throws Exception {
 		MongoCollection<DBObject> serverCollection = getStorylineCollection();
-		Bson filter = eq(FIELD_ID, NewsArticle.id(newsArticle));
+		Bson filter = eq(FIELD_NAME_ID, NewsArticle.id(newsArticle));
 		BasicDBObject dbObject = BSONUtils.serialize(newsArticle);
 		Bson newDocument = new Document("$set", dbObject);
 		serverCollection.findOneAndUpdate(filter, newDocument);
@@ -263,19 +271,21 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			throws Exception {
 		MongoCollection<DBObject> serverCollection = getStorylineCollection();
 		// find by source:path
-		Bson findSourcePath = and(eq("source", CrawlerEntry.source(crawlerEntry)),
-				eq("path", CrawlerEntry.path(crawlerEntry)));
+		Bson findSourcePath = and(
+				eq(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_SOURCE, CrawlerEntry.source(crawlerEntry)),
+				eq(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_PATH, CrawlerEntry.path(crawlerEntry)));
 		FindIterable<DBObject> find = serverCollection.find(findSourcePath).limit(1);
 		// если существует -- обновить "crawler_id"
 		if (find.first() != null) {
 			DBObject newsArticleDB = find.first();
 			// update crawler_id
-			newsArticleDB.put(FIELD_CRAWLER_ID, new Id(CrawlerEntry.idString(crawlerEntry)));
+			newsArticleDB
+					.put(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID, new Id(CrawlerEntry.idString(crawlerEntry)));
 			// update by key
-			Bson filter = eq(FIELD_ID, newsArticleDB.get(FIELD_ID));
+			Bson filter = eq(FIELD_NAME_ID, newsArticleDB.get(FIELD_NAME_ID));
 			Bson newDocument = new Document("$set", newsArticleDB);
 			serverCollection.updateOne(filter, newDocument);
-			Id oid = (Id) newsArticleDB.get(FIELD_ID);
+			Id oid = (Id) newsArticleDB.get(FIELD_NAME_ID);
 			return oid.getValue();
 		} else {
 			// если не существует -- создать новый, скопировать существующие атрибуты и бежать
@@ -285,7 +295,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 			Bson newDocument = new Document("$set", dbObject);
 			DBObject newRecord = collection.findOneAndUpdate(findSourcePath, newDocument,
 					upsertAfterFindOneAndUpdateOptions);
-			Id oid = (Id) newRecord.get(FIELD_ID);
+			Id oid = (Id) newRecord.get(FIELD_NAME_ID);
 			return oid.getValue();
 
 		}
@@ -294,19 +304,19 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public void markCrawlerEntryAsArchived(String crawlerEntryId) throws Exception {
 		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
-		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_ARCHIVED, true);
+		setObjectField(crawlerCollections, crawlerEntryId, CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true);
 	}
 
 	@Override
 	public Map<String, Object> getNextUnpurgedImagesNewsArticle(Date date) throws Exception {
 		MongoCollection<DBObject> collection = getStorylineCollection();
 		// in_processed != true AND proceed != true
-		Bson filter = and(ne(NEWS_ARTICLE_FIELD_IMAGES_PURGED, true),
-				ne(NEWS_ARTICLE_FIELD_IN_PROCESS, true),
+		Bson filter = and(ne(NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, true),
+				ne(FIELD_NAME_IN_PROCESS, true),
 				lt(IGroovyInterpreter.EXTR_KEY_PUB_DATE, date));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
-				BasicDBObject.parse("{$set: {'" + NEWS_ARTICLE_FIELD_IN_PROCESS + "' : true}}");
+				BasicDBObject.parse("{$set: {'" + FIELD_NAME_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
 		if (item != null) {
 			return BSONUtils.deserialize(item);
@@ -321,12 +331,12 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	public Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		// in_processed != true AND proceed != true
-		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_ARCHIVED, true),
-				ne(CRAWLER_ENTRY_FIELD_IN_PROCESS, true),
+		Bson filter = and(ne(CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true),
+				ne(FIELD_NAME_IN_PROCESS, true),
 				lt(IGroovyInterpreter.EXTR_KEY_PUB_DATE, date));
 		// { "$set" : { "in_process" : "true"}}
 		Bson update =
-				BasicDBObject.parse("{$set: {'" + CRAWLER_ENTRY_FIELD_IN_PROCESS + "' : true}}");
+				BasicDBObject.parse("{$set: {'" + FIELD_NAME_IN_PROCESS + "' : true}}");
 		DBObject item = collection.findOneAndUpdate(filter, update, afterFindOneAndUpdateOptions);
 		if (item != null) {
 			return BSONUtils.deserialize(item);
@@ -337,7 +347,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 
 	protected void setObjectField(MongoCollection<DBObject> collection, String objectId,
 			String fieldName, boolean value) throws Exception {
-		Bson filter = eq(FIELD_ID, new Id(objectId));
+		Bson filter = eq(FIELD_NAME_ID, new Id(objectId));
 		Bson update = BasicDBObject
 				.parse("{$set: {'" + fieldName + "' : " + Boolean.toString(value) + " }}");
 		collection.findOneAndUpdate(filter, update);
@@ -347,7 +357,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public Map<String, Object> getCrawlerEntry(String id) throws Exception {
 		MongoCollection<DBObject> serverCollections = getCrawlerCollection();
-		Bson filter = eq(FIELD_ID, new Id(id));
+		Bson filter = eq(FIELD_NAME_ID, new Id(id));
 		FindIterable<DBObject> iter = serverCollections.find(filter).limit(1);
 		DBObject dbObject = iter.first();
 		return BSONUtils.deserialize(dbObject);
@@ -357,13 +367,13 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public void unmarkNewsArticleAsInProcess(String newsArticleId) throws Exception {
 		MongoCollection<DBObject> collection = getStorylineCollection();
-		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_IN_PROCESS, false);
+		setObjectField(collection, newsArticleId, FIELD_NAME_IN_PROCESS, false);
 	}
 
 	@Override
 	public void markNewsArticleAsImagesPurged(String newsArticleId) throws Exception {
 		MongoCollection<DBObject> collection = getStorylineCollection();
-		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_IMAGES_PURGED, true);
+		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, true);
 
 	}
 }

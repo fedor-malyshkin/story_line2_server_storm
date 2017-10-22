@@ -5,14 +5,7 @@ import java.util.Map;
 
 
 public interface IMongoDBClient {
-	public static final String FIELD_ID = "_id";
-	public static final String FIELD_CRAWLER_ID = "crawler_id";
-	public static final String CRAWLER_ENTRY_FIELD_PROCESSED = "processed";
-	public static final String CRAWLER_ENTRY_FIELD_ARCHIVED = "archived";
-	public static final String CRAWLER_ENTRY_FIELD_IN_PROCESS = "in_process";
-	// images_purged
-	public static final String NEWS_ARTICLE_FIELD_IMAGES_PURGED = "images_purged";
-	public static final String NEWS_ARTICLE_FIELD_IN_PROCESS = "in_process";
+
 
 
 	Map<String, Object> getCrawlerEntry(String id) throws Exception;

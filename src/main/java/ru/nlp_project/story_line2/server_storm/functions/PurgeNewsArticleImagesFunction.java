@@ -15,6 +15,7 @@ import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class PurgeNewsArticleImagesFunction implements Function {
 
@@ -45,7 +46,7 @@ public class PurgeNewsArticleImagesFunction implements Function {
 		try {
 			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(id);
 			NewsArticle.imageData(newsArticle, new byte[]{});
-			newsArticle.put(IMongoDBClient.NEWS_ARTICLE_FIELD_IMAGES_PURGED, true);
+			newsArticle.put(NamesUtil.NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, true);
 			mongoDBClient.updateNewsArticle(newsArticle);
 			searchManager.updateNewsArticle(newsArticle);
 			// collector.emit(new Values(id));

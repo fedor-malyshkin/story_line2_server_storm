@@ -6,11 +6,11 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.apache.logging.log4j.core.util.NameUtil;
 import org.apache.storm.trident.operation.Function;
 import org.apache.storm.trident.operation.TridentCollector;
 import org.apache.storm.trident.operation.TridentOperationContext;
 import org.apache.storm.trident.tuple.TridentTuple;
-import org.apache.storm.tuple.Values;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +18,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ArchiveCrawlerEntryFunction implements Function {
 
@@ -48,7 +49,7 @@ public class ArchiveCrawlerEntryFunction implements Function {
 		try {
 			Map<String, Object> crawlerEntry = mongoDBClient.getCrawlerEntry(id);
 			CrawlerEntry.rawContent(crawlerEntry, null);
-			crawlerEntry.put(IMongoDBClient.CRAWLER_ENTRY_FIELD_ARCHIVED, true);
+			crawlerEntry.put(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true);
 			mongoDBClient.updateCrawlerEntry(crawlerEntry);
 			// collector.emit(new Values());
 		} catch (Exception e) {

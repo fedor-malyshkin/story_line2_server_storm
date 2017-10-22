@@ -12,7 +12,6 @@ import org.apache.storm.generated.KillOptions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
@@ -25,6 +24,7 @@ import ru.nlp_project.story_line2.server_storm.dagger.ServerStormTestModule;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
+import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class MaintainceTopologyTest {
 
@@ -99,7 +99,7 @@ public class MaintainceTopologyTest {
 							return false;
 						}
 						return (Boolean) argument
-								.get(IMongoDBClient.CRAWLER_ENTRY_FIELD_ARCHIVED);
+								.get(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED);
 					}
 				})));
 	}
@@ -126,7 +126,7 @@ public class MaintainceTopologyTest {
 							return false;
 						}
 						return (Boolean) argument
-								.get(IMongoDBClient.NEWS_ARTICLE_FIELD_IMAGES_PURGED);
+								.get(NamesUtil.NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED);
 					}
 				})));
 		verify(searchManager, atLeastOnce()).updateNewsArticle(any(Map.class));
