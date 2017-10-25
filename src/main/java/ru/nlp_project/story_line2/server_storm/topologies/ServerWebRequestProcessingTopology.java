@@ -57,6 +57,9 @@ public class ServerWebRequestProcessingTopology {
 	protected static void updateConfiguration(String configUrl, Config conf) {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(1);
+		conf.setNumEventLoggers(10);
+		conf.put(Config.TOPOLOGY_STATS_SAMPLE_RATE, 1f);
+		conf.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 50);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60);
 	}
