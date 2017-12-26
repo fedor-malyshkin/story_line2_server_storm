@@ -11,8 +11,8 @@ public class CrawlerDataProcessingTopologyTestLocal {
 
 	private LocalCluster cluster;
 
-	@Test
 	@Ignore
+	@Test
 	public void testMain() throws InterruptedException {
 		cluster = new LocalCluster();
 		// Map<String, Object> conf = Utils.readStormConfig();

@@ -85,6 +85,7 @@ public class MaintainceTopologyTest {
 
 		when(mongoDBClient.getNextUnpurgedImagesNewsArticle(any(Date.class)))
 				.thenReturn(null);
+		when(mongoDBClient.getNextMaintenanceCommandEntry()).thenReturn(null);
 		when(mongoDBClient.getNextUnarchivedCrawlerEntry(any(Date.class)))
 				.thenReturn(unprocessedCrawlerEntry);
 		when(mongoDBClient.getCrawlerEntry(startsWith(crawlerEntryId)))
@@ -115,6 +116,7 @@ public class MaintainceTopologyTest {
 				.thenReturn(unpurgedNewsArticle);
 		when(mongoDBClient.getNextUnarchivedCrawlerEntry(any(Date.class)))
 				.thenReturn(null);
+		when(mongoDBClient.getNextMaintenanceCommandEntry()).thenReturn(null);
 		when(mongoDBClient.getNewsArticle(startsWith(unpurgedId))).thenReturn(unpurgedNewsArticle);
 
 		startAndWaitTopo();
