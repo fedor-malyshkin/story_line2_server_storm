@@ -1,5 +1,7 @@
 package ru.nlp_project.story_line2.server_storm.bolt;
 
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_MAINTENANCE_COMMAND;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
@@ -42,11 +44,39 @@ public class ContentExtractingBolt implements IRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(
-				new Fields(NamesUtil.TUPLE_FIELD_NAME_SOURCE, NamesUtil.TUPLE_FIELD_NAME_ID));
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_SOURCE,
+						NamesUtil.TUPLE_FIELD_NAME_ID));
 	}
 
 	@Override
 	public void execute(Tuple input) {
+		String tupleType = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE);
+
+		switch (tupleType) {
+			case NamesUtil.TUPLE_TYPE_NEWS_ENTRY: {
+				processNewsEntry(input);
+				break;
+			}
+			case NamesUtil.TUPLE_TYPE_MAINTENANCE_COMMAND: {
+				processMaintenanceCommand(input);
+				break;
+			}
+			default: {
+				log.error("Unknown tuple type: " + tupleType);
+				throw new IllegalStateException("Unknown tuple type: " + tupleType);
+
+			}
+		}
+	}
+
+
+	private void processMaintenanceCommand(Tuple input) {
+		Map<String, Object> maintenanceEntry = (Map<String, Object>) input
+				.getValueByField(TUPLE_FIELD_NAME_MAINTENANCE_COMMAND);
+
+	}
+
+	private void processNewsEntry(Tuple input) {
 		String objectId = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_ID);
 		String source = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
@@ -58,7 +88,7 @@ public class ContentExtractingBolt implements IRichBolt {
 			// если в краулере поле сырого контента пустое (наверное взято из feed) -- выйти
 			if (CrawlerEntry.rawContent(ce) == null || CrawlerEntry.rawContent(ce).isEmpty()) {
 				// emit new tuple
-				collector.emit(input, Arrays.asList(source, objectId));
+				collector.emit(input, Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, source, objectId));
 				// ack prev tuples
 				collector.ack(input);
 				return;
@@ -109,7 +139,7 @@ public class ContentExtractingBolt implements IRichBolt {
 			collector.fail(input);
 		}
 		// emit new tuple
-		collector.emit(input, Arrays.asList(source, objectId));
+		collector.emit(input, Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, source, objectId));
 		// ack prev tuples
 		collector.ack(input);
 	}

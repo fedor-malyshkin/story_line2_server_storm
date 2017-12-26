@@ -3,12 +3,10 @@ package ru.nlp_project.story_line2.server_storm.impl;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 
 public class GroovyInterpreterImplTest {
@@ -16,18 +14,6 @@ public class GroovyInterpreterImplTest {
 	private GroovyInterpreterImpl testable;
 	private IConfigurationManager.MasterConfiguration masterConfiguration;
 	private String scriptPath;
-
-	class ConfigurationManagerStub implements IConfigurationManager {
-
-		@Override
-		public MasterConfiguration getMasterConfiguration() {
-			return masterConfiguration;
-		}
-
-		@Override
-		public void initialize() {}
-
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -53,10 +39,10 @@ public class GroovyInterpreterImplTest {
 	@Test
 	public void testInitializeWithSuccess() {
 		testable.initialize();
-		File file = new File (testable.directory, "ru/nlp_project/story_line2/crawler_scripts/bnkomi_ru.groovy");
+		File file = new File(testable.directory,
+				"ru/nlp_project/story_line2/crawler_scripts/bnkomi_ru.groovy");
 		Assertions.assertThat(file.exists()).isTrue();
 	}
-
 
 	@Test
 	public void testCallBnkomiRUShouldProcess() throws IOException {
@@ -65,6 +51,18 @@ public class GroovyInterpreterImplTest {
 		Assertions.assertThat(extractData).isNotNull();
 	}
 
+	class ConfigurationManagerStub implements IConfigurationManager {
+
+		@Override
+		public MasterConfiguration getMasterConfiguration() {
+			return masterConfiguration;
+		}
+
+		@Override
+		public void initialize() {
+		}
+
+	}
 
 
 }

@@ -47,6 +47,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	private Logger logger;
 	private boolean initialized = false;
 	private RestClient restClient;
+	private Map<String, String> stringFromClasspathCache = new HashMap<>();
 
 	@Inject
 	ElasticsearchManagerImpl() {
@@ -108,7 +109,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			initializeIndex();
 			initialized = true;
 		} catch (Exception e) {
-			logger.error("Initialization error: '{}', {}",  e.getMessage(), e);
+			logger.error("Initialization error: '{}', {}", e.getMessage(), e);
 			initialized = false;
 			restClient = null;
 		}
@@ -191,17 +192,22 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	}
 
 
-	String getStringFromClasspath(String classpath) {
-		InputStream stream = Thread.currentThread().getContextClassLoader()
-				.getResourceAsStream(CLASSPATH_PREFIX + classpath);
-		if (stream == null) {
-			throw new IllegalStateException("Illegal classpath: " + CLASSPATH_PREFIX + classpath);
+	String getStringFromClasspath(String classpathName) {
+		String template = stringFromClasspathCache.get(classpathName);
+		if (template == null) {
+			InputStream stream = Thread.currentThread().getContextClassLoader()
+					.getResourceAsStream(CLASSPATH_PREFIX + classpathName);
+			if (stream == null) {
+				throw new IllegalStateException("Illegal classpath: " + CLASSPATH_PREFIX + classpathName);
+			}
+			try {
+				template = IOUtils.toString(stream, UTF8);
+				stringFromClasspathCache.put(classpathName, template);
+			} catch (IOException e) {
+				throw new IllegalStateException(e);
+			}
 		}
-		try {
-			return IOUtils.toString(stream, UTF8);
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
+		return template;
 	}
 
 	private String getContent(Response response) {
@@ -317,6 +323,32 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
 				Collections.emptyMap(), entity);
 
+	}
+
+	@Override
+	public void deleteDocuments(String source) throws IOException {
+		RestClient elClient = getRestClient();
+		String endpoint = String.format("/%s/%s/_delete_by_query", writeIndex, INDEX_NEWS_ARTICLE);
+		String template = getStringFromClasspath("searchTemplate_deleteBySource.json");
+		Map<String, Object> subst = new HashMap<>();
+		subst.put("source", source);
+		String requestData = fillTemplate(template, subst);
+
+		HttpEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
+		// POST /writeIndex/INDEX_NEWS_ARTICLE/ID
+		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
+				Collections.emptyMap(), entity);
+	}
+
+	@Override
+	public void deleteAllDocuments() throws IOException {
+		RestClient elClient = getRestClient();
+		String endpoint = String.format("/%s/%s/_delete_by_query", writeIndex, INDEX_NEWS_ARTICLE);
+		String template = getStringFromClasspath("searchTemplate_deleteAll.json");
+		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
+		// POST /writeIndex/INDEX_NEWS_ARTICLE/ID
+		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
+				Collections.emptyMap(), entity);
 	}
 
 

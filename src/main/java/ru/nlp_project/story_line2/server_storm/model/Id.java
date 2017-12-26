@@ -1,19 +1,21 @@
 package ru.nlp_project.story_line2.server_storm.model;
 
+import java.io.Serializable;
+
 /**
  * Объект - идентификатор. Предназначе в первую очередь для классов объектной модели с целью
  * различной сериализации в зависимости от типа преобразования.
- * 
- * @author fedor
  *
+ * @author fedor
  */
-public class Id {
+public class Id implements Serializable {
 
 	private String value = "";
 
 	public Id(String value) {
-		if (value == null || value.isEmpty())
+		if (value == null || value.isEmpty()) {
 			throw new IllegalStateException("Initial id value cnnot be null/empty.");
+		}
 		this.value = value;
 	}
 
@@ -36,21 +38,25 @@ public class Id {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
+		if (this == obj) {
 			return true;
-		if (obj == null)
+		}
+		if (obj == null) {
 			return false;
-		if (getClass() != obj.getClass())
+		}
+		if (getClass() != obj.getClass()) {
 			return false;
+		}
 		Id other = (Id) obj;
 		if (value == null) {
-			if (other.value != null)
+			if (other.value != null) {
 				return false;
-		} else if (!value.equals(other.value))
+			}
+		} else if (!value.equals(other.value)) {
 			return false;
+		}
 		return true;
 	}
-
 
 
 }

@@ -1,13 +1,12 @@
 package ru.nlp_project.story_line2.server_storm.bolt;
 
-import static junit.framework.TestCase.fail;
 import static org.mockito.Mockito.*;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.*;
 
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runners.JUnit4;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
@@ -23,6 +22,7 @@ import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ContentExtractingBoltTest {
+
 
 	private ServerStormTestModule serverStormTestModule;
 	private IMongoDBClient mongoDBClient;
@@ -60,10 +60,10 @@ public class ContentExtractingBoltTest {
 	}
 
 
-
 	@Test
 	public void testExecute_ExistRawContent() throws Exception {
 		TupleStub tuple = new TestUtils.TupleStub();
+		tuple.put(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_TYPE_NEWS_ENTRY);
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
 
@@ -96,6 +96,7 @@ public class ContentExtractingBoltTest {
 	@Test
 	public void testExecute_KeepCrawlerEntryImageUrl() throws Exception {
 		TupleStub tuple = new TestUtils.TupleStub();
+		tuple.put(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_TYPE_NEWS_ENTRY);
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_ID, "_id");
 		tuple.put(NamesUtil.TUPLE_FIELD_NAME_SOURCE, "_source");
 
@@ -123,5 +124,6 @@ public class ContentExtractingBoltTest {
 		verify(groovyInterpreter).extractData(anyString(), anyString(), eq("some text"));
 		verify(imageDownloader, atLeastOnce()).downloadImage(eq("image_url_original"));
 	}
+
 
 }

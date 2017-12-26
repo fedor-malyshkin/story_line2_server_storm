@@ -1,7 +1,11 @@
 {
-    "_source": [ "image_data", "image_url"],
-    "query" : {
-        "term" : { "_id" : "${id}" }
-        
+  "_source": [
+    "image_data",
+    "image_url"
+  ],
+  "query": {
+    "term": {
+      "_id": "${id}"
     }
+  }
 }

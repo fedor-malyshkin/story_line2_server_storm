@@ -208,7 +208,7 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see ru.nlp_project.story_line2.server_storm.IGroovyInterpreter#extractData(java.lang.String,
 	 * java.lang.String, java.lang.String)
 	 */
@@ -237,6 +237,12 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 		}
 
 
+	}
+
+	@Override
+	public void reloadScripts() {
+		// simple reinitialize
+		initialize();
 	}
 
 	/**

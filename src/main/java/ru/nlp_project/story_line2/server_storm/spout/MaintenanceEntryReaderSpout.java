@@ -14,31 +14,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
-import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
-import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
-public class CrawlerEntryReaderSpout implements IRichSpout {
+public class MaintenanceEntryReaderSpout implements IRichSpout {
 
 	private static final long serialVersionUID = 1L;
 	@Inject
 	public IMongoDBClient mongoDBClient;
 	@Inject
-	public ISearchManager searchManager;
-	@Inject
 	public IConfigurationManager configurationManager;
+
 	private SpoutOutputCollector collector;
 	private Logger log;
 
 	@Override
 	public void ack(Object msgId) {
-		try {
-			mongoDBClient.markCrawlerEntryAsProcessedByNewsArticleId((String) msgId);
-		} catch (Exception e) {
-			System.err.println("ack: " + e);
-			log.error("ack.log" + e.getMessage(), e);
-		}
 	}
 
 	@Override
@@ -58,40 +49,31 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(
-				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_SOURCE, NamesUtil.TUPLE_FIELD_NAME_ID));
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_MAINTENANCE_COMMAND));
 	}
 
 	@Override
 	public void fail(Object msgId) {
-		try {
-			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticleId((String) msgId);
-		} catch (Exception e) {
-			System.err.println("fail: " + e);
-			log.error("fail.log" + e.getMessage(), e);
-		}
 	}
 
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
 		Map<String, Object> conf = new HashMap<>();
 		// 1 minute
-		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60 );
+		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60);
 		return conf;
-
 	}
 
 	@Override
 	public void nextTuple() {
 		try {
-			Map<String, Object> crawlerEntry = mongoDBClient.getNextUnprocessedCrawlerEntry();
+			Map<String, Object> maintenanceEntry = mongoDBClient.getNextMaintenanceCommandEntry();
 			// there is no data
-			if (null == crawlerEntry) {
+			if (null == maintenanceEntry) {
 				return;
 			}
-			String id = mongoDBClient.upsertNewsArticleByCrawlerEntry(crawlerEntry);
-			collector.emit(Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, CrawlerEntry.source(crawlerEntry), id), id);
+			collector.emit(Arrays.asList(NamesUtil.TUPLE_TYPE_MAINTENANCE_COMMAND, maintenanceEntry));
 		} catch (Exception e) {
-			System.err.println("nextTuple: " + e);
 			log.error("nextTuple.log" + e.getMessage(), e);
 		}
 

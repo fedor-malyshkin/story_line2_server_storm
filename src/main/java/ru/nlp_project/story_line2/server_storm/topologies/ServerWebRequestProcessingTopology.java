@@ -3,6 +3,7 @@ package ru.nlp_project.story_line2.server_storm.topologies;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FUN_NAME_GET_NEWS_ARTICLE;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FUN_NAME_GET_NEWS_HEADERS;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FUN_NAME_GET_NEWS_IMAGES;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FUN_NAME_MAINTENANCE;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_ARGS;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_JSON;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_RESULT;
@@ -20,6 +21,7 @@ import org.apache.storm.trident.TridentTopology;
 import org.apache.storm.tuple.Fields;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.functions.JSONConverterFunction;
+import ru.nlp_project.story_line2.server_storm.functions.MaintenanceFunction;
 import ru.nlp_project.story_line2.server_storm.functions.NewsArticleFinderFunction;
 import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunction;
 
@@ -102,6 +104,12 @@ public class ServerWebRequestProcessingTopology {
 						new Fields(TUPLE_FIELD_NAME_JSON))
 				.name("json-converter-" + FUN_NAME_GET_NEWS_IMAGES)
 				.project(new Fields(TUPLE_FIELD_NAME_JSON)).name("FUN_NAME_GET_NEWS_IMAGES");
+
+		// maintenance
+		createNewDRPCStream(topo, FUN_NAME_MAINTENANCE, drpc)
+				.each(new Fields(TUPLE_FIELD_NAME_ARGS),
+						new MaintenanceFunction(FUN_NAME_MAINTENANCE), new Fields())
+				.name("maintenance");
 
 		return topo.build();
 	}

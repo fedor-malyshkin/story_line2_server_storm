@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ISearchManager {
+
 	void initialize();
 
 	void shutdown();
@@ -26,5 +27,12 @@ public interface ISearchManager {
 
 	Map<String, Object> getNewsArticleImageData(String newsId, int position);
 
-	void 	updateNewsArticle(Map<String, Object> newsArticle) throws IOException;
+	void updateNewsArticle(Map<String, Object> newsArticle) throws IOException;
+
+	/**
+	 * Delete documents from index by source.
+	 */
+	void deleteDocuments(String source) throws IOException;
+
+	void deleteAllDocuments() throws IOException;
 }

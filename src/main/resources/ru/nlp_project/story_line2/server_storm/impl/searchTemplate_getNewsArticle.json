@@ -1,7 +1,16 @@
 {
-    "_source": [ "publication_date", "title", "path", "source", "image_url", "url", "content"],
-    "query" : {
-        "term" : { "_id" : "${id}" }
-        
+  "_source": [
+    "publication_date",
+    "title",
+    "path",
+    "source",
+    "image_url",
+    "url",
+    "content"
+  ],
+  "query": {
+    "term": {
+      "_id": "${id}"
     }
+  }
 }

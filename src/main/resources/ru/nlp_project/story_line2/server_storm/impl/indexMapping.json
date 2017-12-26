@@ -1,60 +1,84 @@
 {
-	"settings" : {
-	},
-	"mappings" : {
-		"news_article" : {
-			"dynamic_templates": [
-				{
-					"fact_key": {
-						"path_match":   "facts.*.fact_key",
-						"mapping": {
-							"type":       "keyword"
-						}
-					}
-				},
-				{
-					"fact_sentence_start_pos": {
-						"path_match":   "facts.*.fact_sentence_start_pos",
-						"mapping": {
-							"type":       "long"
-						}
-					}
-				},
-				{
-					"fact_value": {
-						"path_match":   "facts.*.fact_value",
-						"mapping": {
-							"type" : "keyword",
-							"fields" : {
-								"text" : {
-									"type" : "text"
-								}
-							}
-						}
-					}
-				},
-				{
-					"sentence_index": {
-						"path_match":   "facts.*.sentence_index",
-						"mapping": {
-							"type":       "long"
-						}
-					}
-				}
-			],
-			"include_in_all": false,
-			"properties" : {
-				"crawler_id" : { "type" : "keyword" },
-				"publication_date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis" },
-				"processing_date" : { "type" : "date", "format" : "strict_date_time||strict_date_time_no_millis"  },
-				"content" : { "type" : "text",  "include_in_all": true },
-				"path" : { "type" : "keyword" },
-				"source" : { "type" : "keyword"},
-				"image_url" : { "type" : "keyword"},
-				"image_data" : { "type" : "binary" },
-				"title" : { "type" : "text", "include_in_all": true},
-				"url" : { "type" : "keyword"}
-			}
-		}
-	}
+  "settings": {
+  },
+  "mappings": {
+    "news_article": {
+      "dynamic_templates": [
+        {
+          "fact_key": {
+            "path_match": "facts.*.fact_key",
+            "mapping": {
+              "type": "keyword"
+            }
+          }
+        },
+        {
+          "fact_sentence_start_pos": {
+            "path_match": "facts.*.fact_sentence_start_pos",
+            "mapping": {
+              "type": "long"
+            }
+          }
+        },
+        {
+          "fact_value": {
+            "path_match": "facts.*.fact_value",
+            "mapping": {
+              "type": "keyword",
+              "fields": {
+                "text": {
+                  "type": "text"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sentence_index": {
+            "path_match": "facts.*.sentence_index",
+            "mapping": {
+              "type": "long"
+            }
+          }
+        }
+      ],
+      "include_in_all": false,
+      "properties": {
+        "crawler_id": {
+          "type": "keyword"
+        },
+        "publication_date": {
+          "type": "date",
+          "format": "strict_date_time||strict_date_time_no_millis"
+        },
+        "processing_date": {
+          "type": "date",
+          "format": "strict_date_time||strict_date_time_no_millis"
+        },
+        "content": {
+          "type": "text",
+          "include_in_all": true
+        },
+        "path": {
+          "type": "keyword"
+        },
+        "source": {
+          "type": "keyword"
+        },
+        "image_url": {
+          "type": "keyword"
+        },
+        "image_data": {
+          "type": "binary"
+        },
+        "title": {
+          "type": "text",
+          "include_in_all": true
+        },
+        "url": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
 }

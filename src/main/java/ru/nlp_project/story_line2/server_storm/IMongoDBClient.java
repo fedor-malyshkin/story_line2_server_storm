@@ -7,34 +7,29 @@ import java.util.Map;
 public interface IMongoDBClient {
 
 
-
 	Map<String, Object> getCrawlerEntry(String id) throws Exception;
 
 
 	/**
-	 * @param objectId
-	 * @return
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
+	 * обрабатывать
 	 */
 	Map<String, Object> getNewsArticle(String newsArticleId) throws Exception;
 
 	/**
 	 * получить следующий незаархивированный CE, старше указанной даты
-	 * 
+	 *
 	 * @param date дата, раньше которой выбираются CE
 	 * @return следующий элемент или null при их отсуствии
-	 * @throws Exception
 	 */
 	Map<String, Object> getNextUnarchivedCrawlerEntry(Date date) throws Exception;
 
 	/**
 	 * Получить следующую необработанную стать. При этом выставляется в документе (статье краулера)
 	 * поле {"in_process": true }
-	 * 
-	 * @return
+	 *
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
+	 * обрабатывать
 	 */
 	Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception;
 
@@ -46,9 +41,8 @@ public interface IMongoDBClient {
 
 
 	/**
-	 * @param objectId
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
+	 * обрабатывать
 	 */
 	void unmarkCrawlerEntryAsInProcessByNewsArticleId(String newsArticleId) throws Exception;
 
@@ -56,10 +50,8 @@ public interface IMongoDBClient {
 
 
 	/**
-	 * @param newsArticle
-	 * @throws Exception
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
+	 * обрабатывать
 	 */
 	void updateNewsArticle(Map<String, Object> newsArticle) throws Exception;
 
@@ -67,22 +59,36 @@ public interface IMongoDBClient {
 	/**
 	 * Сделать новый или найти существующий объект "NewsArticle" по данным "CrawlerEntry"
 	 * (source:path).
-	 * 
-	 * 
-	 * @param entry
-	 * @return
+	 *
 	 * @throws Exception произвольное исключение (например при работе с БД) код должен усеть их
-	 *         обрабатывать
+	 * обрабатывать
 	 */
 	String upsertNewsArticleByCrawlerEntry(Map<String, Object> entry) throws Exception;
 
 	void markCrawlerEntryAsArchived(String crawlerEntryId) throws Exception;
 
-	Map<String,Object> getNextUnpurgedImagesNewsArticle(Date date) throws Exception;
+	Map<String, Object> getNextUnpurgedImagesNewsArticle(Date date) throws Exception;
 
 	void unmarkNewsArticleAsInProcess(String newsArticleId) throws Exception;
 
 	void markNewsArticleAsImagesPurged(String newsArticleId) throws Exception;
 
 	void initialize();
+
+	void insertMaintenanceCommandEntry(Map<String, Object> entry) throws Exception;
+
+	/**
+	 * Получить следующую запись обслуживания (или null).
+	 *
+	 * @return следующую запись обслуживания (или null)
+	 */
+	Map<String, Object> getNextMaintenanceCommandEntry() throws Exception;
+
+	void deleteNewsArticles(String source) throws Exception;
+
+	void unmarkCrawlerEntriesAsProcessed(String source) throws Exception;
+
+	void deleteAllNewsArticles() throws Exception;
+
+	void unmarkAllCrawlerEntriesAsProcessed() throws Exception;
 }

@@ -1,10 +1,10 @@
 package ru.nlp_project.story_line2.server_storm.bolt;
 
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_MAINTENANCE_COMMAND;
+
 import java.util.Arrays;
 import java.util.Map;
-
 import javax.inject.Inject;
-
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichBolt;
@@ -13,7 +13,6 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Tuple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
@@ -22,14 +21,13 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 @SuppressWarnings("unused")
 public class TextProcessingBolt implements IRichBolt {
 
+	private static final long serialVersionUID = 8970948884690790271L;
 	@Inject
 	public IMongoDBClient mongoDBClient;
-	@Inject
-	public IConfigurationManager configurationManager;
 	//@Inject
 	//public ITextAnalyser textAnalyser;
-
-	private static final long serialVersionUID = 8970948884690790271L;
+	@Inject
+	public IConfigurationManager configurationManager;
 	private OutputCollector collector;
 	private Logger log;
 
@@ -43,6 +41,33 @@ public class TextProcessingBolt implements IRichBolt {
 
 	@Override
 	public void execute(Tuple input) {
+		String tupleType = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE);
+
+		switch (tupleType) {
+			case NamesUtil.TUPLE_TYPE_NEWS_ENTRY: {
+				processNewsEntry(input);
+				break;
+			}
+			case NamesUtil.TUPLE_TYPE_MAINTENANCE_COMMAND: {
+				processMaintenanceCommand(input);
+				break;
+			}
+			default: {
+				log.error("Unknown tuple type: " + tupleType);
+				throw new IllegalStateException("Unknown tuple type: " + tupleType);
+
+			}
+		}
+	}
+
+	private void processMaintenanceCommand(Tuple input) {
+		Map<String, String> maintenanceEntry = (Map<String, String>) input
+				.getValueByField(TUPLE_FIELD_NAME_MAINTENANCE_COMMAND);
+		// TODO: implement
+	}
+
+	private void processNewsEntry(Tuple input) {
+
 		String objectId = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_ID);
 		String domain = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
@@ -55,9 +80,10 @@ public class TextProcessingBolt implements IRichBolt {
 			collector.fail(input);
 		}
 		// emit new tuple
-		collector.emit(input, Arrays.asList(domain, objectId));
+		collector.emit(input, Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, domain, objectId));
 		// ack prev tuples
 		collector.ack(input);
+
 	}
 
 
@@ -81,7 +107,8 @@ public class TextProcessingBolt implements IRichBolt {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(
-				new Fields(NamesUtil.TUPLE_FIELD_NAME_SOURCE, NamesUtil.TUPLE_FIELD_NAME_ID));
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_SOURCE,
+						NamesUtil.TUPLE_FIELD_NAME_ID));
 	}
 
 	@Override

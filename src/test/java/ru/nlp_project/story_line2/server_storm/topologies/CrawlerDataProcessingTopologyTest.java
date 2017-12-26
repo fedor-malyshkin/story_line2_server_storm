@@ -102,6 +102,7 @@ public class CrawlerDataProcessingTopologyTest {
 
 		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
 		CrawlerEntry.source(unprocessedCrawlerEntry, source);
+		when(mongoDBClient.getNextMaintenanceCommandEntry()).thenReturn(null);
 		when(mongoDBClient.getNextUnprocessedCrawlerEntry()).thenReturn(unprocessedCrawlerEntry);
 		// создать на его базе NA
 		when(mongoDBClient.upsertNewsArticleByCrawlerEntry(anyMap())).thenReturn(newsArticleId);
@@ -133,6 +134,7 @@ public class CrawlerDataProcessingTopologyTest {
 
 		CrawlerEntry.rawContent(unprocessedCrawlerEntry, crawlerEntryRawValue);
 		CrawlerEntry.source(unprocessedCrawlerEntry, source);
+		when(mongoDBClient.getNextMaintenanceCommandEntry()).thenReturn(null);
 		when(mongoDBClient.getNextUnprocessedCrawlerEntry()).thenReturn(unprocessedCrawlerEntry);
 		// создать на его базе NA
 		when(mongoDBClient.upsertNewsArticleByCrawlerEntry(anyMap())).thenReturn(newsArticleId);

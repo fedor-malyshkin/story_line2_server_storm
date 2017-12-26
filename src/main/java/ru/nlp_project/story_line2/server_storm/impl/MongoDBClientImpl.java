@@ -2,12 +2,15 @@ package ru.nlp_project.story_line2.server_storm.impl;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.ne;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_ID;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_IN_PROCESS;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_PROCESSED;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_SOURCE;
+import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.MAINTENANCE_COMMAND_FIELD_NAME_COMMAND;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED;
 
@@ -29,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import org.bson.BsonDocument;
 import org.bson.BsonType;
 import org.bson.Document;
 import org.bson.codecs.BsonTypeClassMap;
@@ -64,6 +68,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	private FindOneAndUpdateOptions upsertAfterFindOneAndUpdateOptions;
 	private MongoClientOptions options;
 	private CodecRegistry codecRegistry;
+	private MongoCollection<DBObject> maintenanceCollection;
 
 	@Inject
 	public MongoDBClientImpl() {
@@ -175,6 +180,17 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		return storylineCollection;
 	}
 
+	private MongoCollection<DBObject> getMaintenanceCollection() throws Exception {
+		if (maintenanceCollection == null) {
+			MongoDatabase database = client.getDatabase(NamesUtil.MONGODB_MAINTENANCE_DATABASE_NAME)
+					.withCodecRegistry(codecRegistry);
+			maintenanceCollection = database
+					.getCollection(NamesUtil.MONGODB_MAINTENANCE_COLLECTION_NAME, DBObject.class);
+		}
+		return maintenanceCollection;
+	}
+
+
 	@Override
 	public void initialize() {
 		registerCodecs();
@@ -195,6 +211,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		createCrawlerIndexes();
 		createStorylineIndexes();
 	}
+
 
 	private void registerCodecs() {
 		Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
@@ -375,5 +392,55 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		MongoCollection<DBObject> collection = getStorylineCollection();
 		setObjectField(collection, newsArticleId, NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, true);
 
+	}
+
+	@Override
+	public Map<String, Object> getNextMaintenanceCommandEntry() throws Exception {
+		MongoCollection<DBObject> collection = getMaintenanceCollection();
+		if (collection.count() == 0) {
+			return null;
+		}
+
+		Bson filter = exists(MAINTENANCE_COMMAND_FIELD_NAME_COMMAND);
+		DBObject object = collection.findOneAndDelete(filter);
+		return BSONUtils.deserialize(object);
+	}
+
+	@Override
+	public void deleteNewsArticles(String source) throws Exception {
+		MongoCollection<DBObject> storylineCollection = getStorylineCollection();
+		Bson filter = eq(FIELD_NAME_SOURCE, source);
+		storylineCollection.deleteMany(filter);
+	}
+
+	@Override
+	public void unmarkCrawlerEntriesAsProcessed(String source) throws Exception {
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
+		Bson filter = eq(FIELD_NAME_SOURCE, source);
+		Bson update = BasicDBObject
+				.parse("{$set: {'" + FIELD_NAME_PROCESSED + "' : " + Boolean.toString(false) + " }}");
+		crawlerCollections.updateMany(filter, update);
+	}
+
+
+	@Override
+	public void insertMaintenanceCommandEntry(Map<String, Object> entry) throws Exception {
+		BasicDBObject dbObject = BSONUtils.serialize(entry);
+		MongoCollection<DBObject> collection = getMaintenanceCollection();
+		collection.insertOne(dbObject);
+	}
+
+	@Override
+	public void deleteAllNewsArticles() throws Exception {
+		MongoCollection<DBObject> storylineCollection = getStorylineCollection();
+		storylineCollection.drop();
+	}
+
+	@Override
+	public void unmarkAllCrawlerEntriesAsProcessed() throws Exception {
+		MongoCollection<DBObject> crawlerCollections = getCrawlerCollection();
+		Bson update = BasicDBObject
+				.parse("{$set: {'" + FIELD_NAME_PROCESSED + "' : " + Boolean.toString(false) + " }}");
+		crawlerCollections.updateMany(new BsonDocument(), update);
 	}
 }

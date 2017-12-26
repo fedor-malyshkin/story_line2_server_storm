@@ -1,7 +1,10 @@
 {
-    "_source": [ "publication_date"],
-    "query" : {
-        "term" : { "_id" : "${id}" }
-        
+  "_source": [
+    "publication_date"
+  ],
+  "query": {
+    "term": {
+      "_id": "${id}"
     }
+  }
 }
