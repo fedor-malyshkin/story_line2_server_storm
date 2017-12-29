@@ -1,7 +1,6 @@
 package ru.nlp_project.story_line2.server_storm.impl;
 
 import javax.inject.Inject;
-
 import ru.nlp_project.story_line2.config.ConfigurationException;
 import ru.nlp_project.story_line2.config.ConfigurationManager;
 import ru.nlp_project.story_line2.config.IConfigurationSupplier;
@@ -10,6 +9,7 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 public class ConfigurationManagerImpl implements IConfigurationManager {
 
 	private MasterConfiguration masterConfiguration;
+	private MetricsConfiguration metricsConfiguration;
 	private String configurationUrl;
 
 	@Inject
@@ -32,10 +32,15 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 				ConfigurationManager.getConfigurationSupplier(configurationUrl);
 		masterConfiguration = supplier.getConfigurationObjectFromPath(configurationUrl,
 				MasterConfiguration.class);
+		metricsConfiguration = supplier.getConfigurationObjectFromPath(configurationUrl,
+				MetricsConfiguration.class);
 	}
 
 	public MasterConfiguration getMasterConfiguration() {
 		return masterConfiguration;
 	}
 
+	public MetricsConfiguration getMetricsConfiguration() {
+		return metricsConfiguration;
+	}
 }

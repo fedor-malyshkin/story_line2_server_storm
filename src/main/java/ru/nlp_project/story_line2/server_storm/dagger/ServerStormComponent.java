@@ -5,6 +5,7 @@ import javax.inject.Singleton;
 import ru.nlp_project.story_line2.server_storm.bolt.ContentExtractingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.MaintenanceBolt;
+import ru.nlp_project.story_line2.server_storm.bolt.MetricsCollectorBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.TextProcessingBolt;
 import ru.nlp_project.story_line2.server_storm.functions.ArchiveCrawlerEntryFunction;
 import ru.nlp_project.story_line2.server_storm.functions.JSONConverterFunction;
@@ -14,6 +15,7 @@ import ru.nlp_project.story_line2.server_storm.functions.NewsHeaderFinderFunctio
 import ru.nlp_project.story_line2.server_storm.functions.PurgeNewsArticleImagesFunction;
 import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
 import ru.nlp_project.story_line2.server_storm.spout.MaintenanceEntryReaderSpout;
+import ru.nlp_project.story_line2.server_storm.spout.MetricsEventEmitterSpout;
 import ru.nlp_project.story_line2.server_storm.spout.UnarchivedCrawlerEntryReaderSpout;
 import ru.nlp_project.story_line2.server_storm.spout.UnpurgedNewsArticleReaderSpout;
 
@@ -49,4 +51,8 @@ public abstract class ServerStormComponent {
 	public abstract void inject(MaintenanceEntryReaderSpout instance);
 
 	public abstract void inject(MaintenanceBolt instance);
+
+	public abstract void inject(MetricsEventEmitterSpout instance);
+
+	public abstract void inject(MetricsCollectorBolt instance);
 }

@@ -7,6 +7,7 @@ import javax.inject.Singleton;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
@@ -20,6 +21,7 @@ public class ServerStormTestModule {
 	public IMongoDBClient mongoDBClient;
 	public IGroovyInterpreter groovyInterpreter;
 	public IImageDownloader imageDownloader;
+	public IMetricsManager metricsManager;
 	private MetricRegistry metricRegistry = null;
 
 
@@ -70,6 +72,13 @@ public class ServerStormTestModule {
 	@Singleton
 	public IImageDownloader provideImageDownloader() {
 		return imageDownloader;
+	}
+
+
+	@Provides
+	@Singleton
+	public IMetricsManager provideMetricsManager() {
+		return metricsManager;
 	}
 
 }

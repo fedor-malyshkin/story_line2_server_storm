@@ -57,6 +57,7 @@ public class NamesUtil {
 	public static final String TUPLE_FIELD_NAME_MAINTENANCE_COMMAND = "maintenance_command";
 	public static final String TUPLE_TYPE_NEWS_ENTRY = "news_entry";
 	public static final String TUPLE_TYPE_MAINTENANCE_COMMAND = "maintenance_command";
+	public static final String TUPLE_TYPE_METRICS_COMMAND = "metrics_command";
 
 
 	// maintenance

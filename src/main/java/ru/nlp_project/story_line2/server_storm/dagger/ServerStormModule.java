@@ -10,10 +10,12 @@ import ru.nlp_project.story_line2.server_storm.IImageDownloader;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.impl.ConfigurationManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.ElasticsearchManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.GroovyInterpreterImpl;
 import ru.nlp_project.story_line2.server_storm.impl.ImageDownloaderImpl;
+import ru.nlp_project.story_line2.server_storm.impl.MetricsManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.MongoDBClientImpl;
 import ru.nlp_project.story_line2.server_storm.impl.TextAnalyserImpl;
 
@@ -82,5 +84,13 @@ public class ServerStormModule {
 	public MetricRegistry provideMetricRegistry() {
 		return metricRegistry;
 	}
+
+	@Provides
+	@Singleton
+	public IMetricsManager provideMetricsManager(MetricsManagerImpl instance) {
+		instance.initialize();
+		return instance;
+	}
+
 
 }

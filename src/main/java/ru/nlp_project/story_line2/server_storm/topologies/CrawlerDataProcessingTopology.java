@@ -12,9 +12,11 @@ import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.bolt.ContentExtractingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.ElasticsearchIndexingBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.MaintenanceBolt;
+import ru.nlp_project.story_line2.server_storm.bolt.MetricsCollectorBolt;
 import ru.nlp_project.story_line2.server_storm.bolt.TextProcessingBolt;
 import ru.nlp_project.story_line2.server_storm.spout.CrawlerEntryReaderSpout;
 import ru.nlp_project.story_line2.server_storm.spout.MaintenanceEntryReaderSpout;
+import ru.nlp_project.story_line2.server_storm.spout.MetricsEventEmitterSpout;
 
 /**
  * <p/>
@@ -35,6 +37,8 @@ public class CrawlerDataProcessingTopology {
 	private static final String SPOUT_CRAWLER_ENTRY_READER = "crawler_entry_reader";
 	private static final String SPOUT_MAINTENANCE_ENTRY_READER = "maintenance_reader";
 	private static final String BOLT_MAINTENANCE_PROCESSOR = "maintenance_processor";
+	private static final String SPOUT_METRICS_EVENT_EMITTER = "metrics_event_emitter";
+	private static final String BOLT_METRICS_PROCESSOR = "metrics_collector";
 
 	public static void main(String args[]) throws IOException, AlreadyAliveException,
 			InvalidTopologyException, AuthorizationException {
@@ -60,7 +64,9 @@ public class CrawlerDataProcessingTopology {
 	protected static StormTopology createTopology() {
 		TopologyBuilder builder = new TopologyBuilder();
 		// maintenance part
-		builder.setSpout(SPOUT_MAINTENANCE_ENTRY_READER, new MaintenanceEntryReaderSpout());
+		builder.setSpout(SPOUT_MAINTENANCE_ENTRY_READER, new MaintenanceEntryReaderSpout(), 1);
+		builder.setBolt(BOLT_MAINTENANCE_PROCESSOR, new MaintenanceBolt(), 1)
+				.allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
 // processing part
 		builder.setSpout(SPOUT_CRAWLER_ENTRY_READER, new CrawlerEntryReaderSpout(), 1);
 		builder.setBolt(BOLT_CONTENT_EXTRACTOR, new ContentExtractingBolt(), 4)
@@ -72,8 +78,10 @@ public class CrawlerDataProcessingTopology {
 		builder.setBolt(BOLT_ELASTICSEARCH_INDEXER, new ElasticsearchIndexingBolt(), 1)
 				.shuffleGrouping(BOLT_TEXT_PROCESSOR).allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
 
-		builder.setBolt(BOLT_MAINTENANCE_PROCESSOR, new MaintenanceBolt(), 1)
-				.allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
+// metrics part
+		builder.setSpout(SPOUT_METRICS_EVENT_EMITTER, new MetricsEventEmitterSpout(), 1);
+		builder.setBolt(BOLT_METRICS_PROCESSOR, new MetricsCollectorBolt(), 1)
+				.allGrouping(SPOUT_METRICS_EVENT_EMITTER);
 
 		return builder.createTopology();
 	}

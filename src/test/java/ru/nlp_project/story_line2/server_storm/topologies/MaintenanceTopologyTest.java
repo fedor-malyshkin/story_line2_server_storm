@@ -26,7 +26,7 @@ import ru.nlp_project.story_line2.server_storm.model.Id;
 import ru.nlp_project.story_line2.server_storm.model.NewsArticle;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
-public class MaintainceTopologyTest {
+public class MaintenanceTopologyTest {
 
 	private static IMongoDBClient mongoDBClient;
 	private static ISearchManager searchManager;
@@ -67,7 +67,7 @@ public class MaintainceTopologyTest {
 	public void tearDown() throws InterruptedException {
 		KillOptions options = new KillOptions();
 		options.set_wait_secs(20);
-		cluster.killTopologyWithOpts(MaintainceTopology.TOPOLOGY_NAME, options);
+		cluster.killTopologyWithOpts(MaintenanceTopology.TOPOLOGY_NAME, options);
 		cluster.shutdown();
 	}
 
@@ -139,8 +139,8 @@ public class MaintainceTopologyTest {
 		// storm
 		cluster = new LocalCluster();
 		topologyConfig = new HashMap<String, Object>();
-		cluster.submitTopology(MaintainceTopology.TOPOLOGY_NAME, topologyConfig,
-				MaintainceTopology.createTopology());
+		cluster.submitTopology(MaintenanceTopology.TOPOLOGY_NAME, topologyConfig,
+				MaintenanceTopology.createTopology());
 		Thread.sleep(1 * 5 * 1_000);
 	}
 

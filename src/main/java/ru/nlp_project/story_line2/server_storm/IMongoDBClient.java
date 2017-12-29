@@ -1,12 +1,16 @@
 package ru.nlp_project.story_line2.server_storm;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 
 public interface IMongoDBClient {
 
 
+	/**
+	 * Get crawler entry by id.
+	 */
 	Map<String, Object> getCrawlerEntry(String id) throws Exception;
 
 
@@ -88,7 +92,29 @@ public interface IMongoDBClient {
 
 	void unmarkCrawlerEntriesAsProcessed(String source) throws Exception;
 
+	/**
+	 * Delete all news articles.
+	 *
+	 * @throws Exception
+	 */
 	void deleteAllNewsArticles() throws Exception;
 
 	void unmarkAllCrawlerEntriesAsProcessed() throws Exception;
+
+	List<String> getCrawlerEntrySources() throws Exception;
+
+	List<String> getNewsArticleSources() throws Exception;
+
+	long getProcessedNewsArticlesCount(String source) throws Exception;
+
+	long getUnprocessedNewsArticlesCount(String source) throws Exception;
+
+	long getNewsArticlesCount(String source) throws Exception;
+
+	long getProcessedCrawlerEntriesCount(String source) throws Exception;
+
+	long getUnprocessedCrawlerEntriesCount(String source) throws Exception;
+
+	long getCrawlerEntriesCount(String source) throws Exception;
+
 }

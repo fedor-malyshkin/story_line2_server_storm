@@ -5,6 +5,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.ne;
+import static com.mongodb.client.model.Filters.not;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_ID;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_IN_PROCESS;
@@ -19,6 +20,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
+import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -26,11 +28,13 @@ import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOptions;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javax.inject.Inject;
 import org.bson.BsonDocument;
 import org.bson.BsonType;
@@ -443,4 +447,68 @@ public class MongoDBClientImpl implements IMongoDBClient {
 				.parse("{$set: {'" + FIELD_NAME_PROCESSED + "' : " + Boolean.toString(false) + " }}");
 		crawlerCollections.updateMany(new BsonDocument(), update);
 	}
+
+	@Override
+	public List<String> getCrawlerEntrySources() throws Exception {
+		List<String> result = new ArrayList<>();
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
+		Consumer<String> c = result::add;
+		sources.forEach(c);
+		return result;
+	}
+
+	@Override
+	public List<String> getNewsArticleSources() throws Exception {
+		List<String> result = new ArrayList<>();
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
+		Consumer<String> c = result::add;
+		sources.forEach(c);
+		return result;
+	}
+
+	@Override
+	public long getProcessedNewsArticlesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		Bson filter = and(eq(FIELD_NAME_PROCESSED, true), eq(FIELD_NAME_SOURCE, source));
+		return collection.count(filter);
+	}
+
+	@Override
+	public long getUnprocessedNewsArticlesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		Bson filter = and(not(eq(FIELD_NAME_PROCESSED, true)), eq(FIELD_NAME_SOURCE, source));
+		return collection.count(filter);
+	}
+
+	@Override
+	public long getNewsArticlesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getStorylineCollection();
+		Bson filter = eq(FIELD_NAME_SOURCE, source);
+		return collection.count(filter);
+	}
+
+	@Override
+	public long getProcessedCrawlerEntriesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = and(eq(FIELD_NAME_PROCESSED, true), eq(FIELD_NAME_SOURCE, source));
+		return collection.count(filter);
+	}
+
+	@Override
+	public long getUnprocessedCrawlerEntriesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = and(not(eq(FIELD_NAME_PROCESSED, true)), eq(FIELD_NAME_SOURCE, source));
+		return collection.count(filter);
+	}
+
+	@Override
+	public long getCrawlerEntriesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = eq(FIELD_NAME_SOURCE, source);
+		return collection.count(filter);
+	}
+
+
 }

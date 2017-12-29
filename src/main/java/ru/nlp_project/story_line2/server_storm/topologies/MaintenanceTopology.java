@@ -23,15 +23,15 @@ import ru.nlp_project.story_line2.server_storm.spout.UnpurgedNewsArticleReaderSp
  * <p/>
  * Run with JVM args "-Dru.nlp_project.story_line2.server_storm.config=file:${workspace_loc:server_storm}/src/main/resources/ru/nlp_project/story_line2/server_storm/server_storm_config.yml"
  * <p/>
- * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar ru.nlp_project.story_line2.server_storm.topologies.MaintainceTopology
+ * Deploy: ./storm jar server_storm-0.1-SNAPSHOT-all.jar ru.nlp_project.story_line2.server_storm.topologies.MaintenanceTopology
  * http://datahouse01.nlp-project.ru:9000/server_storm.yaml
  * <p/>
  *
  * @author fedor
  */
-public class MaintainceTopology {
+public class MaintenanceTopology {
 
-	public static final String TOPOLOGY_NAME = "maintaince_topology";
+	public static final String TOPOLOGY_NAME = "maintenance_topology";
 
 	public static void main(String args[]) throws IOException, AlreadyAliveException,
 			InvalidTopologyException, AuthorizationException {

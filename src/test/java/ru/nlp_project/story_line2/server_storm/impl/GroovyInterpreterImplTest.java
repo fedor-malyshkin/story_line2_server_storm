@@ -14,12 +14,14 @@ public class GroovyInterpreterImplTest {
 	private GroovyInterpreterImpl testable;
 	private IConfigurationManager.MasterConfiguration masterConfiguration;
 	private String scriptPath;
+	private IConfigurationManager.MetricsConfiguration metricsConfiguration;
 
 	@Before
 	public void setUp() throws Exception {
 		scriptPath =
 				"file:./src/test/resources/ru/nlp_project/story_line2/server_storm/impl/GroovyInterpreterImplTest.scripts.jar";
 		masterConfiguration = new IConfigurationManager.MasterConfiguration();
+		metricsConfiguration = new IConfigurationManager.MetricsConfiguration();
 		masterConfiguration.contentExtractionScriptPath = scriptPath.toString();
 		testable = new GroovyInterpreterImpl();
 		testable.configurationManager = new ConfigurationManagerStub();
@@ -62,6 +64,10 @@ public class GroovyInterpreterImplTest {
 		public void initialize() {
 		}
 
+		@Override
+		public MetricsConfiguration getMetricsConfiguration() {
+			return metricsConfiguration;
+		}
 	}
 
 

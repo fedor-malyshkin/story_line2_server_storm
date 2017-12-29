@@ -44,14 +44,14 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	public IConfigurationManager configurationManager;
 	String readIndex;
 	String writeIndex;
-	private Logger logger;
+	private Logger log;
 	private boolean initialized = false;
 	private RestClient restClient;
 	private Map<String, String> stringFromClasspathCache = new HashMap<>();
 
 	@Inject
 	ElasticsearchManagerImpl() {
-		logger = LoggerFactory.getLogger(this.getClass());
+		log = LoggerFactory.getLogger(this.getClass());
 	}
 
 	private void createIndex(String indexName) throws IOException {
@@ -109,7 +109,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			initializeIndex();
 			initialized = true;
 		} catch (Exception e) {
-			logger.error("Initialization error: '{}', {}", e.getMessage(), e);
+			log.error("Initialization error: '{}', {}", e.getMessage(), e);
 			initialized = false;
 			restClient = null;
 		}
@@ -140,7 +140,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			try {
 				restClient.close();
 			} catch (IOException e) {
-				logger.error(e.getMessage(), e);
+				log.error(e.getMessage(), e);
 			}
 		}
 

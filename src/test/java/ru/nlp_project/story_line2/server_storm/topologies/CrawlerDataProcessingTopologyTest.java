@@ -18,8 +18,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentMatcher;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
+import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MasterConfiguration;
+import ru.nlp_project.story_line2.server_storm.IConfigurationManager.MetricsConfiguration;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
@@ -37,8 +40,11 @@ public class CrawlerDataProcessingTopologyTest {
 	private static IGroovyInterpreter groovyInterpreter;
 	private static IConfigurationManager configurationManager;
 	private static ITextAnalyser textAnalyser;
+	private static IMetricsManager metricsManager;
 	private LocalCluster cluster;
 	private HashMap<String, Object> topologyConfig;
+	private static MasterConfiguration masterConfiguration;
+	private static MetricsConfiguration metricsConfiguration;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -53,12 +59,16 @@ public class CrawlerDataProcessingTopologyTest {
 		imageDownloader = mock(IImageDownloader.class);
 		serverStormTestModule.imageDownloader = imageDownloader;
 
-		configurationManager = mock(IConfigurationManager.class);
+		configurationManager = new ConfigurationManagerStub();
 		serverStormTestModule.configurationManager = configurationManager;
 		groovyInterpreter = mock(IGroovyInterpreter.class);
 		serverStormTestModule.groovyInterpreter = groovyInterpreter;
 		textAnalyser = mock(ITextAnalyser.class);
 		serverStormTestModule.textAnalyser = textAnalyser;
+
+		metricsManager = mock(IMetricsManager.class);
+		serverStormTestModule.metricsManager = metricsManager;
+
 	}
 
 	@Before
@@ -66,9 +76,12 @@ public class CrawlerDataProcessingTopologyTest {
 		reset(mongoDBClient);
 		reset(searchManager);
 		reset(imageDownloader);
-		reset(configurationManager);
 		reset(groovyInterpreter);
 		reset(textAnalyser);
+		reset(metricsManager);
+		masterConfiguration = new MasterConfiguration();
+		metricsConfiguration = new MetricsConfiguration();
+		metricsConfiguration.enabled=false;
 	}
 
 	protected void startAndWaitTopo() throws InterruptedException {
@@ -190,4 +203,22 @@ public class CrawlerDataProcessingTopologyTest {
 		NewsArticle.crawlerId(result, new Id(crawlerId));
 		return result;
 	}
+
+	static class ConfigurationManagerStub implements IConfigurationManager {
+
+		@Override
+		public MasterConfiguration getMasterConfiguration() {
+			return masterConfiguration;
+		}
+
+		@Override
+		public void initialize() {
+		}
+
+		@Override
+		public MetricsConfiguration getMetricsConfiguration() {
+			return metricsConfiguration;
+		}
+	}
+
 }

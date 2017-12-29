@@ -13,3 +13,17 @@ glr_parser.sentence_data: ru-opennlp-model-sent.bin
 glr_parser.morph_zip_db: dict.story_line2.zip
 glr_parser.articles: [fios, geos, nouns]
 glr_parser.fact_file: facts.yaml
+# metrics
+server_storm.metrics.enabled: true
+# период сбора данных (в секундах)
+server_storm.metrics.collectiong_pertiod: 15
+server_storm.influxdb_metrics.enabled: true
+server_storm.influxdb_metrics.influxdb_host: "ci.nlp-project.ru"
+server_storm.influxdb_metrics.influxdb_port: 8086
+server_storm.influxdb_metrics.influxdb_db: "storyline"
+server_storm.influxdb_metrics.influxdb_user: "server_storm"
+server_storm.influxdb_metrics.influxdb_password: "server_storm"
+# период отправки данных на сервер (в секундах)
+server_storm.influxdb_metrics.reporting_period: 30
+# период отправки данных в лог (в секундах)
+server_storm.influxdb_metrics.log_reporting_period: 300

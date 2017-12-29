@@ -19,6 +19,7 @@ import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
+
 public class MaintenanceBolt implements IRichBolt {
 
 	private static final long serialVersionUID = 1L;
@@ -72,6 +73,9 @@ public class MaintenanceBolt implements IRichBolt {
 				maintenanceReindexSource(maintenanceCommand);
 			}
 			break;
+			default: {
+				throw new IllegalArgumentException("Unknown maintenance command: " + command);
+			}
 		}
 
 	}
@@ -91,7 +95,7 @@ public class MaintenanceBolt implements IRichBolt {
 				mongoDBClient.unmarkAllCrawlerEntriesAsProcessed();
 			} catch (Exception e) {
 				log.error(
-						String.format("Exception while reindex source '%s': '%s'", source, e.getMessage()),
+						String.format("Exception while reindex all sources: '%s'", e.getMessage()),
 						e);
 			}
 		} else {
