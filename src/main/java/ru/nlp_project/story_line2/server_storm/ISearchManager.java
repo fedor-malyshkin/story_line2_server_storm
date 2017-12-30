@@ -35,4 +35,6 @@ public interface ISearchManager {
 	void deleteDocuments(String source) throws IOException;
 
 	void deleteAllDocuments() throws IOException;
+
+	long getNewsArticlesCount(String source) throws IOException;
 }

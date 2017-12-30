@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
+import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
@@ -23,6 +24,8 @@ public class MetricsCollectorBolt implements IRichBolt {
 	public IMetricsManager metricsManager;
 	@Inject
 	public IMongoDBClient mongoDBClient;
+	@Inject
+	public ISearchManager searchManager;
 
 	private Logger log;
 
@@ -57,25 +60,27 @@ public class MetricsCollectorBolt implements IRichBolt {
 		try {
 			List<String> crawlerEntrySources = mongoDBClient.getCrawlerEntrySources();
 			for (String source : crawlerEntrySources) {
-				metricsManager.crawlerEntriesCount(source, mongoDBClient.getCrawlerEntriesCount(source));
+				metricsManager.crawlerEntriesCountDB(source, mongoDBClient.getCrawlerEntriesCount(source));
 				metricsManager
-						.processedCrawlerEntriesCount(source,
+						.processedCrawlerEntriesCountDB(source,
 								mongoDBClient.getProcessedCrawlerEntriesCount(source));
 				metricsManager
-						.unprocessedCrawlerEntriesCount(source,
+						.unprocessedCrawlerEntriesCountDB(source,
 								mongoDBClient.getUnprocessedCrawlerEntriesCount(source));
-
 			}
 
 			List<String> newsArticleSources = mongoDBClient.getNewsArticleSources();
 			for (String source : newsArticleSources) {
-				metricsManager.newsArticlesCount(source, mongoDBClient.getNewsArticlesCount(source));
+				metricsManager.newsArticlesCountDB(source, mongoDBClient.getNewsArticlesCount(source));
 				metricsManager
-						.processedNewsArticlesCount(source,
+						.processedNewsArticlesCountDB(source,
 								mongoDBClient.getProcessedNewsArticlesCount(source));
 				metricsManager
-						.unprocessedNewsArticlesCount(source,
+						.unprocessedNewsArticlesCountDB(source,
 								mongoDBClient.getUnprocessedNewsArticlesCount(source));
+				// elastic
+				metricsManager.newsArticlesCountSearch(source, searchManager.getNewsArticlesCount(source));
+
 			}
 		} catch (Exception e) {
 			log.error("Exception while collecting metrics: {}", e.getMessage(), e);

@@ -24,9 +24,10 @@ import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 
 public class MetricsManagerImpl implements IMetricsManager {
 
-	private static final String WHOLE_COUNT = "count";
-	private static final String PROCESSED_COUNT = "processed_count";
-	private static final String UNPROCESSED_COUNT = "unprocessed_count";
+	private static final String DB_WHOLE_COUNT = "mongodb_records_count";
+	private static final String SEARCH_WHOLE_COUNT = "search_records_count";
+	private static final String DB_PROCESSED_COUNT = "mongodb_records_processed_count";
+	private static final String DB_UNPROCESSED_COUNT = "mongodb_records_unprocessed_count";
 	private final static String CRAWLER_ENTRY = "crawler_entry";
 	private final static String NEWS_ARTICLE = "news_article";
 	private final Logger log;
@@ -38,7 +39,7 @@ public class MetricsManagerImpl implements IMetricsManager {
 	private HashMap<String, Counter> counterHashMap = new HashMap<>();
 	private Slf4jReporter slfjReporter;
 	private ScheduledReporter inAppInfluxDBReporter;
-	private HashMap<String, IntGaugeValueSupplier> gaugeHashMap = new HashMap<>();
+	private HashMap<String, LongGaugeValueSupplier> gaugeHashMap = new HashMap<>();
 
 
 	@Inject
@@ -120,8 +121,8 @@ public class MetricsManagerImpl implements IMetricsManager {
 		return metricRegistry.timer(name);
 	}
 
-	private IntGaugeValueSupplier getGauge(String entryType, String source, String counterName) {
-		IntGaugeValueSupplier result = gaugeHashMap.get(entryType + "-" + source + "-" + counterName);
+	private LongGaugeValueSupplier getGauge(String entryType, String source, String counterName) {
+		LongGaugeValueSupplier result = gaugeHashMap.get(entryType + "-" + source + "-" + counterName);
 		if (result == null) {
 			result = createGauge(entryType, source, counterName);
 			gaugeHashMap.put(entryType + "-" + source + "-" + counterName, result);
@@ -129,54 +130,60 @@ public class MetricsManagerImpl implements IMetricsManager {
 		return result;
 	}
 
-	private IntGaugeValueSupplier createGauge(String entryType, String source, String counterName) {
-		final IntGaugeValueSupplier intGaugeValueSupplier = new IntGaugeValueSupplier();
+	private LongGaugeValueSupplier createGauge(String entryType, String source, String counterName) {
+		final LongGaugeValueSupplier longGaugeValueSupplier = new LongGaugeValueSupplier();
 		String name = String
 				.format("%s.%s.%s", entryType,
 						source.replace(".", "_"), counterName);
-		metricRegistry.gauge(name, intGaugeValueSupplier);
-		return intGaugeValueSupplier;
+		metricRegistry.gauge(name, longGaugeValueSupplier);
+		return longGaugeValueSupplier;
 	}
 
 	@Override
-	public void crawlerEntriesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, WHOLE_COUNT);
+	public void crawlerEntriesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, DB_WHOLE_COUNT);
 		gauge.set(count);
 	}
 
 	@Override
-	public void processedCrawlerEntriesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, PROCESSED_COUNT);
-		gauge.set(count);
-
-	}
-
-	@Override
-	public void unprocessedCrawlerEntriesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, UNPROCESSED_COUNT);
+	public void processedCrawlerEntriesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, DB_PROCESSED_COUNT);
 		gauge.set(count);
 
 	}
 
 	@Override
-	public void newsArticlesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, WHOLE_COUNT);
+	public void unprocessedCrawlerEntriesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(CRAWLER_ENTRY, source, DB_UNPROCESSED_COUNT);
 		gauge.set(count);
 
 	}
 
 	@Override
-	public void processedNewsArticlesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, PROCESSED_COUNT);
+	public void newsArticlesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, DB_WHOLE_COUNT);
 		gauge.set(count);
 
 	}
 
 	@Override
-	public void unprocessedNewsArticlesCount(String source, long count) {
-		IntGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, UNPROCESSED_COUNT);
+	public void processedNewsArticlesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, DB_PROCESSED_COUNT);
 		gauge.set(count);
 
+	}
+
+	@Override
+	public void unprocessedNewsArticlesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, DB_UNPROCESSED_COUNT);
+		gauge.set(count);
+
+	}
+
+	@Override
+	public void newsArticlesCountSearch(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(NEWS_ARTICLE, source, SEARCH_WHOLE_COUNT);
+		gauge.set(count);
 	}
 
 	private class LongGauge implements Gauge<Long> {
@@ -193,7 +200,7 @@ public class MetricsManagerImpl implements IMetricsManager {
 		}
 	}
 
-	private class IntGaugeValueSupplier implements MetricSupplier<Gauge> {
+	private class LongGaugeValueSupplier implements MetricSupplier<Gauge> {
 
 		private LongGauge gauge = new LongGauge();
 

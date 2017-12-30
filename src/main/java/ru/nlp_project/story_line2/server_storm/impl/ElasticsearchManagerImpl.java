@@ -277,7 +277,6 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 			result.add(arrEntry);
 		}
 		return result;
-
 	}
 
 	@Override
@@ -349,6 +348,47 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		// POST /writeIndex/INDEX_NEWS_ARTICLE/ID
 		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
 				Collections.emptyMap(), entity);
+	}
+
+	@Override
+	public long getNewsArticlesCount(String source) throws IOException {
+		RestClient elClient = getRestClient();
+		String endpoint = String.format("/%s/%s/_count", readIndex, INDEX_NEWS_ARTICLE);
+		String template = getStringFromClasspath("searchTemplate_countBySource.json");
+		Map<String, Object> subst = new HashMap<>();
+		subst.put("source", source);
+		String requestData = fillTemplate(template, subst);
+
+		HttpEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
+
+		Response response;
+		try {
+			response = elClient.performRequest(REQUEST_METHOD_GET, endpoint,
+					Collections.emptyMap(), entity);
+		} catch (IOException e) {
+			throw new IllegalStateException(
+					"Exception while count news articles: " + e.getMessage());
+		}
+		if (getCode(response) == 200) {
+			return extractCount(getContent(response));
+		} else {
+			throw new IllegalStateException("Unexpected response: " + response);
+		}
+	}
+
+	long extractCount(String json) {
+		Map<String, Object> map = JSONUtils.deserialize(json);
+		Object obj = map.get("count");
+		if (obj == null) {
+			return 0;
+		}
+		if (Integer.class.isInstance(obj)) {
+			return (int) obj;
+		}
+		if (Long.class.isInstance(obj)) {
+			return (long) obj;
+		}
+		return 0;
 	}
 
 

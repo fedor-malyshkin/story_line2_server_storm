@@ -6,7 +6,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.io.IOUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -25,7 +24,6 @@ public class ElasticsearchManagerImplTest {
 
 	@Test
 	public void testExtractResults() throws IOException {
-
 		InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
 				"ru/nlp_project/story_line2/server_storm/impl/searchResults.json");
 		String string = IOUtils.toString(stream, Charset.defaultCharset());
@@ -35,6 +33,16 @@ public class ElasticsearchManagerImplTest {
 		Map<String, Object> map = results.get(0);
 		Assertions.assertThat(map.get("path")).isEqualTo("/data/news/60544/");
 	}
+
+	@Test
+	public void testExtractCount() throws IOException {
+		InputStream stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(
+				"ru/nlp_project/story_line2/server_storm/impl/searchResults_Count.json");
+		String string = IOUtils.toString(stream, Charset.defaultCharset());
+		long count = testable.extractCount(string);
+		Assertions.assertThat(count).isEqualTo(123);
+	}
+
 
 	@Test
 	public void testFormatSearchEndpoint() {
@@ -55,7 +63,6 @@ public class ElasticsearchManagerImplTest {
 	}
 
 
-
 	@Test
 	public void testFillTemplate() {
 		Map<String, Object> subst = new HashMap<>();
@@ -63,7 +70,6 @@ public class ElasticsearchManagerImplTest {
 		String str = testable.fillTemplate("----${source}----", subst);
 		Assertions.assertThat(str).isEqualTo("----bnk----");
 	}
-
 
 
 }

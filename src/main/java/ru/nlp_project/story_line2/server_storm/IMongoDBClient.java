@@ -94,8 +94,6 @@ public interface IMongoDBClient {
 
 	/**
 	 * Delete all news articles.
-	 *
-	 * @throws Exception
 	 */
 	void deleteAllNewsArticles() throws Exception;
 

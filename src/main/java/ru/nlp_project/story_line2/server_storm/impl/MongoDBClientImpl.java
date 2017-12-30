@@ -23,6 +23,7 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
@@ -34,7 +35,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import javax.inject.Inject;
 import org.bson.BsonDocument;
 import org.bson.BsonType;
@@ -453,8 +453,10 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		List<String> result = new ArrayList<>();
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
-		Consumer<String> c = result::add;
-		sources.forEach(c);
+		MongoCursor<String> iterator = sources.iterator();
+		while (iterator.hasNext()) {
+			result.add(iterator.next());
+		}
 		return result;
 	}
 
@@ -463,8 +465,10 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		List<String> result = new ArrayList<>();
 		MongoCollection<DBObject> collection = getStorylineCollection();
 		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
-		Consumer<String> c = result::add;
-		sources.forEach(c);
+		MongoCursor<String> iterator = sources.iterator();
+		while (iterator.hasNext()) {
+			result.add(iterator.next());
+		}
 		return result;
 	}
 

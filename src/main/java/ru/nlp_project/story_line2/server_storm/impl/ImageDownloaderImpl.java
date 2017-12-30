@@ -35,19 +35,19 @@ public class ImageDownloaderImpl implements IImageDownloader {
 		InputStream inputStream;
 		try {
 			url1 = new URL(url);
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 			log.warn("Incorrect url: '{}': {}", url, e.getMessage());
 			return new byte[]{};
 		}
 		try {
 			inputStream = url1.openStream();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.warn("Cannot open connection to url: '{}' : {}", url, e.getMessage());
 			return new byte[]{};
 		}
 		try {
 			IOUtils.copy(inputStream, outputStream);
-		} catch (IOException e) {
+		} catch (Exception e) {
 			log.warn("Cannot copy data from url: '{}' : {}", url, e.getMessage());
 		}
 		return outputStream.toByteArray();
