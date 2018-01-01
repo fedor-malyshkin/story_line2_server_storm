@@ -69,7 +69,7 @@ public class TextProcessingBolt implements IRichBolt {
 	private void processNewsEntry(Tuple input) {
 
 		String objectId = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_ID);
-		String domain = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
+		String sourceName = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
 			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
 			//textAnalyser.parseText(newsArticle.content);
@@ -80,7 +80,7 @@ public class TextProcessingBolt implements IRichBolt {
 			collector.fail(input);
 		}
 		// emit new tuple
-		collector.emit(input, Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, domain, objectId));
+		collector.emit(input, Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, sourceName, objectId));
 		// ack prev tuples
 		collector.ack(input);
 

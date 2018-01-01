@@ -1,6 +1,5 @@
 package ru.nlp_project.story_line2.server_storm.topologies;
 
-import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.STREAM_ARCHIVE_OLD_CRAWLER_ENTRIES;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.STREAM_PURGE_NEWS_ARTICLE_IMAGES;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_ID;
 
@@ -14,9 +13,7 @@ import org.apache.storm.generated.StormTopology;
 import org.apache.storm.trident.TridentTopology;
 import org.apache.storm.tuple.Fields;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
-import ru.nlp_project.story_line2.server_storm.functions.ArchiveCrawlerEntryFunction;
 import ru.nlp_project.story_line2.server_storm.functions.PurgeNewsArticleImagesFunction;
-import ru.nlp_project.story_line2.server_storm.spout.UnarchivedCrawlerEntryReaderSpout;
 import ru.nlp_project.story_line2.server_storm.spout.UnpurgedNewsArticleReaderSpout;
 
 /**
@@ -53,18 +50,23 @@ public class MaintenanceTopology {
 	protected static void updateConfiguration(String configUrl, Config conf) {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
 		conf.setNumWorkers(1);
+		// conf.setNumEventLoggers(10);
+		conf.put(Config.TOPOLOGY_STATS_SAMPLE_RATE, 1f);
+		conf.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 50);
+		conf.setMaxSpoutPending(100);
 		// время обработки не более 5 минут
-		conf.setMessageTimeoutSecs(30);
+		conf.setMessageTimeoutSecs(300);
 	}
 
 	protected static StormTopology createTopology() {
 		TridentTopology topo = new TridentTopology();
-
+/*
 		topo.newStream(STREAM_ARCHIVE_OLD_CRAWLER_ENTRIES, new UnarchivedCrawlerEntryReaderSpout())
 				.name("UnarchivedCrawlerEntryReaderSpout")
 				.each(
 						new Fields(TUPLE_FIELD_NAME_ID), new ArchiveCrawlerEntryFunction(),
 						new Fields()).name("ArchiveCrawlerEntryFunction");
+*/
 		topo.newStream(STREAM_PURGE_NEWS_ARTICLE_IMAGES, new UnpurgedNewsArticleReaderSpout())
 				.name("UnpurgedNewsArticleReaderSpout").each(
 				new Fields(TUPLE_FIELD_NAME_ID), new PurgeNewsArticleImagesFunction(),

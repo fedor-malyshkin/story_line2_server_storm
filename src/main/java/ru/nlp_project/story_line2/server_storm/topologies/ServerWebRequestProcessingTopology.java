@@ -62,8 +62,8 @@ public class ServerWebRequestProcessingTopology {
 		conf.setNumEventLoggers(10);
 		conf.put(Config.TOPOLOGY_STATS_SAMPLE_RATE, 1f);
 		conf.put(Config.TOPOLOGY_TRIDENT_BATCH_EMIT_INTERVAL_MILLIS, 50);
-		// время обработки не более 5 минут
-		conf.setMessageTimeoutSecs(60);
+		// время обработки не более 5 секунд
+		conf.setMessageTimeoutSecs(5);
 	}
 
 	protected static StormTopology createTopology(LocalDRPC drpc) {

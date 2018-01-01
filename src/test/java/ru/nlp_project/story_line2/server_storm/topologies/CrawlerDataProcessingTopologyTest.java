@@ -10,6 +10,7 @@ import static org.mockito.Mockito.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.generated.KillOptions;
 import org.junit.After;
@@ -89,6 +90,7 @@ public class CrawlerDataProcessingTopologyTest {
 		cluster = new LocalCluster();
 
 		topologyConfig = new HashMap<String, Object>();
+		topologyConfig.put(Config.TOPOLOGY_DEBUG, true);
 		cluster.submitTopology(CrawlerDataProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				CrawlerDataProcessingTopology.createTopology());
 		Thread.sleep(1 * 5 * 1_000);

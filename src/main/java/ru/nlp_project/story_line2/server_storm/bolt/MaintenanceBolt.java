@@ -1,6 +1,5 @@
 package ru.nlp_project.story_line2.server_storm.bolt;
 
-import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.TUPLE_FIELD_NAME_MAINTENANCE_COMMAND;
 
 import java.util.Map;
 import javax.inject.Inject;
@@ -61,7 +60,7 @@ public class MaintenanceBolt implements IRichBolt {
 
 	private void processMaintenanceCommand(Tuple input) {
 		Map<String, Object> maintenanceCommand = (Map<String, Object>) input
-				.getValueByField(TUPLE_FIELD_NAME_MAINTENANCE_COMMAND);
+				.getValueByField(NamesUtil.TUPLE_FIELD_NAME_MAINTENANCE_COMMAND);
 		String command = (String) maintenanceCommand
 				.get(NamesUtil.MAINTENANCE_COMMAND_FIELD_NAME_COMMAND);
 		switch (command) {
@@ -85,7 +84,8 @@ public class MaintenanceBolt implements IRichBolt {
 		String source = (String) maintenanceCommand
 				.get(NamesUtil.MAINTENANCE_COMMAND_FIELD_NAME_PARAM1);
 		if (source == null || source.isEmpty()) {
-			log.warn("No source specified in 'reindex source' maintenance command.");
+			log.warn("No source specified in '{}' maintenance command.",
+					NamesUtil.MAINTENANCE_COMMAND_REINDEX_SOURCE);
 			return;
 		}
 		if (NamesUtil.MAINTENANCE_COMMAND_REINDEX_SOURCE_PARAM1_ALL.equals(source)) {

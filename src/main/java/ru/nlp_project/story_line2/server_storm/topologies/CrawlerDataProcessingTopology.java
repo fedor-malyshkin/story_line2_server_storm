@@ -55,9 +55,12 @@ public class CrawlerDataProcessingTopology {
 			throws AlreadyAliveException, InvalidTopologyException, AuthorizationException {
 		Config conf = new Config();
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY, configUrl);
+		conf.setNumEventLoggers(1);
 		conf.setNumWorkers(2);
-		// время обработки не более 1 минуты
-		conf.setMessageTimeoutSecs(60);
+		// no more than ... in pending queue
+		conf.setMaxSpoutPending(250);
+		// 2 minutes in non-acked state
+		conf.setMessageTimeoutSecs(120);
 		StormSubmitter.submitTopology(TOPOLOGY_NAME, conf, createTopology());
 	}
 
@@ -69,12 +72,10 @@ public class CrawlerDataProcessingTopology {
 				.allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
 // processing part
 		builder.setSpout(SPOUT_CRAWLER_ENTRY_READER, new CrawlerEntryReaderSpout(), 1);
-		builder.setBolt(BOLT_CONTENT_EXTRACTOR, new ContentExtractingBolt(), 4)
+		builder.setBolt(BOLT_CONTENT_EXTRACTOR, new ContentExtractingBolt(), 8)
 				.shuffleGrouping(SPOUT_CRAWLER_ENTRY_READER).allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
-
-		builder.setBolt(BOLT_TEXT_PROCESSOR, new TextProcessingBolt(), 1)
+		builder.setBolt(BOLT_TEXT_PROCESSOR, new TextProcessingBolt(), 8)
 				.shuffleGrouping(BOLT_CONTENT_EXTRACTOR).allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
-
 		builder.setBolt(BOLT_ELASTICSEARCH_INDEXER, new ElasticsearchIndexingBolt(), 1)
 				.shuffleGrouping(BOLT_TEXT_PROCESSOR).allGrouping(SPOUT_MAINTENANCE_ENTRY_READER);
 

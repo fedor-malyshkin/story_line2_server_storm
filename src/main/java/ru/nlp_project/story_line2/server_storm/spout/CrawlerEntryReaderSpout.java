@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.inject.Inject;
-import org.apache.storm.Config;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
@@ -58,13 +57,15 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	@Override
 	public void declareOutputFields(OutputFieldsDeclarer declarer) {
 		declarer.declare(
-				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_SOURCE, NamesUtil.TUPLE_FIELD_NAME_ID));
+				new Fields(NamesUtil.TUPLE_FIELD_NAME_TUPLE_TYPE, NamesUtil.TUPLE_FIELD_NAME_SOURCE,
+						NamesUtil.TUPLE_FIELD_NAME_ID));
 	}
 
 	@Override
 	public void fail(Object msgId) {
 		try {
 			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticleId((String) msgId);
+			log.error("fail:" + msgId);
 		} catch (Exception e) {
 			System.err.println("fail: " + e);
 			log.error("fail.log" + e.getMessage(), e);
@@ -75,9 +76,8 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	public Map<String, Object> getComponentConfiguration() {
 		Map<String, Object> conf = new HashMap<>();
 		// 1 minute
-		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60 );
+		// conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60);
 		return conf;
-
 	}
 
 	@Override
@@ -89,7 +89,10 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 				return;
 			}
 			String id = mongoDBClient.upsertNewsArticleByCrawlerEntry(crawlerEntry);
-			collector.emit(Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, CrawlerEntry.source(crawlerEntry), id), id);
+			collector.emit(
+					Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, CrawlerEntry.source(crawlerEntry), id),
+					id);
+			log.info("emitting news article: " + id);
 		} catch (Exception e) {
 			System.err.println("nextTuple: " + e);
 			log.error("nextTuple.log" + e.getMessage(), e);
@@ -102,6 +105,11 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	public void open(Map conf, TopologyContext context, SpoutOutputCollector collector) {
 		this.collector = collector;
 		log = LoggerFactory.getLogger(this.getClass());
+
+		conf.forEach(
+				(key, value) ->
+						log.info("Configuration: '{}'-'{}'", key, value)
+		);
 		ServerStormBuilder.getBuilder(conf).inject(this);
 	}
 

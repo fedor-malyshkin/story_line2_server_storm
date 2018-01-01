@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.LocalDRPC;
 import org.apache.storm.generated.KillOptions;
@@ -28,12 +29,12 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
 
 public class ServerWebRequestProcessingTopologyTest {
 
-	private static LocalDRPC drpc;
-	private static LocalCluster cluster;
 	private static ServerStormTestModule serverStormTestModule;
 	private static IMongoDBClient mongoDBClient;
 	private static ISearchManager searchManager;
-	private HashMap<String, Object> topologyConfig = new HashMap<>();
+	private LocalDRPC drpc;
+	private LocalCluster cluster;
+	private HashMap<String, Object> topologyConfig = null;
 
 	@BeforeClass
 	public static void setUpClass() {
@@ -152,6 +153,8 @@ public class ServerWebRequestProcessingTopologyTest {
 		drpc = new LocalDRPC();
 		// storm cluster
 		cluster = new LocalCluster();
+		topologyConfig = new HashMap<String, Object>();
+		topologyConfig.put(Config.TOPOLOGY_DEBUG, true);
 		cluster.submitTopology(ServerWebRequestProcessingTopology.TOPOLOGY_NAME, topologyConfig,
 				ServerWebRequestProcessingTopology.createTopology(drpc));
 		Thread.sleep(1 * 5 * 1_000);

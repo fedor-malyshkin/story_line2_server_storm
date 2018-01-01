@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.model.CrawlerEntry;
@@ -34,6 +35,8 @@ public class ContentExtractingBolt implements IRichBolt {
 	public IImageDownloader imageDownloader;
 	@Inject
 	public IConfigurationManager configurationManager;
+	@Inject
+	public IMetricsManager metricsManager;
 	private OutputCollector collector;
 	private Logger log;
 
@@ -81,10 +84,19 @@ public class ContentExtractingBolt implements IRichBolt {
 		String source = input.getStringByField(NamesUtil.TUPLE_FIELD_NAME_SOURCE);
 		try {
 			// получить текущую новостную статью
+			long start = System.currentTimeMillis();
 			Map<String, Object> newsArticle = mongoDBClient.getNewsArticle(objectId);
+			metricsManager
+					.callDuration(ContentExtractingBolt.class, IMongoDBClient.class, "getNewsArticle",
+							System.currentTimeMillis() - start);
+
 			// из не запись краулера
+			start = System.currentTimeMillis();
 			Map<String, Object> ce =
 					mongoDBClient.getCrawlerEntry(NewsArticle.crawlerIdString(newsArticle));
+			metricsManager
+					.callDuration(ContentExtractingBolt.class, IMongoDBClient.class, "getCrawlerEntry",
+							System.currentTimeMillis() - start);
 			// если в краулере поле сырого контента пустое (наверное взято из feed) -- выйти
 			if (CrawlerEntry.rawContent(ce) == null || CrawlerEntry.rawContent(ce).isEmpty()) {
 				// emit new tuple
@@ -95,8 +107,12 @@ public class ContentExtractingBolt implements IRichBolt {
 			}
 
 			// ... иначе извлечь данные и перенести атрибуты в статью
+			start = System.currentTimeMillis();
 			Map<String, Object> data = groovyInterpreter.extractData(source, CrawlerEntry.url(ce),
 					CrawlerEntry.rawContent(ce));
+			metricsManager
+					.callDuration(ContentExtractingBolt.class, IGroovyInterpreter.class, "extractData",
+							System.currentTimeMillis() - start);
 			if (null == data || data.isEmpty()) {
 				log.debug("No content {}:{} ({})", source, CrawlerEntry.path(ce),
 						CrawlerEntry.url(ce));
@@ -112,7 +128,11 @@ public class ContentExtractingBolt implements IRichBolt {
 				NewsArticle.publicationDate(newsArticle, publicationDate);
 				// update crawler entry "publication_date"
 				CrawlerEntry.publicationDate(ce, publicationDate);
+				start = System.currentTimeMillis();
 				mongoDBClient.updateCrawlerEntry(ce);
+				metricsManager
+						.callDuration(ContentExtractingBolt.class, IMongoDBClient.class, "updateCrawlerEntry",
+								System.currentTimeMillis() - start);
 
 			}
 			if (title != null) {
@@ -129,11 +149,19 @@ public class ContentExtractingBolt implements IRichBolt {
 			imageUrl = NewsArticle.imageUrl(newsArticle);
 			// download image
 			if (imageUrl != null && !imageUrl.isEmpty()) {
+				start = System.currentTimeMillis();
 				byte[] imageData = imageDownloader.downloadImage(imageUrl);
+				metricsManager
+						.callDuration(ContentExtractingBolt.class, IImageDownloader.class, "downloadImage",
+								System.currentTimeMillis() - start);
 				NewsArticle.imageData(newsArticle, imageData);
 			}
 
+			start = System.currentTimeMillis();
 			mongoDBClient.updateNewsArticle(newsArticle);
+			metricsManager
+					.callDuration(ContentExtractingBolt.class, IMongoDBClient.class, "updateNewsArticle",
+							System.currentTimeMillis() - start);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 			collector.fail(input);

@@ -17,6 +17,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.nio.entity.NStringEntity;
 import org.elasticsearch.client.Response;
+import org.elasticsearch.client.ResponseListener;
 import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -335,8 +336,17 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 		HttpEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
 		// POST /writeIndex/INDEX_NEWS_ARTICLE/ID
-		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
-				Collections.emptyMap(), entity);
+		ResponseListener listener = new ResponseListener() {
+			@Override
+			public void onSuccess(Response response) {
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+			}
+		};
+		elClient.performRequestAsync(REQUEST_METHOD_POST, endpoint, Collections.emptyMap(), entity,
+				listener);
 	}
 
 	@Override
@@ -346,8 +356,17 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String template = getStringFromClasspath("searchTemplate_deleteAll.json");
 		HttpEntity entity = new NStringEntity(template, ContentType.APPLICATION_JSON);
 		// POST /writeIndex/INDEX_NEWS_ARTICLE/ID
-		elClient.performRequest(REQUEST_METHOD_POST, endpoint,
-				Collections.emptyMap(), entity);
+		ResponseListener listener = new ResponseListener() {
+			@Override
+			public void onSuccess(Response response) {
+			}
+
+			@Override
+			public void onFailure(Exception exception) {
+			}
+		};
+		elClient.performRequestAsync(REQUEST_METHOD_POST, endpoint, Collections.emptyMap(), entity,
+				listener);
 	}
 
 	@Override

@@ -10,6 +10,7 @@ import org.junit.Test;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormBuilder;
 import ru.nlp_project.story_line2.server_storm.dagger.ServerStormTestModule;
@@ -28,6 +29,7 @@ public class ContentExtractingBoltTest {
 	private IMongoDBClient mongoDBClient;
 	private IGroovyInterpreter groovyInterpreter;
 	private IImageDownloader imageDownloader;
+	private IMetricsManager metricsManager;
 	private ContentExtractingBolt testable;
 	private OutputCollectorStub outputCollectorHolder;
 	private IConfigurationManager configurationManager;
@@ -51,6 +53,9 @@ public class ContentExtractingBoltTest {
 
 		imageDownloader = mock(IImageDownloader.class);
 		serverStormTestModule.imageDownloader = imageDownloader;
+
+		metricsManager = mock(IMetricsManager.class);
+		serverStormTestModule.metricsManager = metricsManager;
 
 		Map<String, Object> config = new HashMap<String, Object>();
 		testable = new ContentExtractingBolt();
