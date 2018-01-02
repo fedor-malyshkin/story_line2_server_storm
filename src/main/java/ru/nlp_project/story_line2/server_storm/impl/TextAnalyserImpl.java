@@ -31,7 +31,6 @@ public class TextAnalyserImpl implements ITextAnalyser {
 	private boolean initMorph;
 	private boolean multiThread;
 
-	@Inject
 	public TextAnalyserImpl() {
 		this(true, false);
 	}

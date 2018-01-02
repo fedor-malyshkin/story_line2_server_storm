@@ -12,7 +12,6 @@ public class ConfigurationManagerImpl implements IConfigurationManager {
 	private MetricsConfiguration metricsConfiguration;
 	private String configurationUrl;
 
-	@Inject
 	public ConfigurationManagerImpl(String configurationUrl) {
 		this.configurationUrl = configurationUrl;
 	}

@@ -7,10 +7,10 @@ import javax.inject.Singleton;
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 import ru.nlp_project.story_line2.server_storm.IGroovyInterpreter;
 import ru.nlp_project.story_line2.server_storm.IImageDownloader;
+import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.IMongoDBClient;
 import ru.nlp_project.story_line2.server_storm.ISearchManager;
 import ru.nlp_project.story_line2.server_storm.ITextAnalyser;
-import ru.nlp_project.story_line2.server_storm.IMetricsManager;
 import ru.nlp_project.story_line2.server_storm.impl.ConfigurationManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.ElasticsearchManagerImpl;
 import ru.nlp_project.story_line2.server_storm.impl.GroovyInterpreterImpl;
@@ -35,7 +35,8 @@ public class ServerStormModule {
 
 	@Provides
 	@Singleton
-	public IMongoDBClient provideMongoDBClient(MongoDBClientImpl instance) {
+	public IMongoDBClient provideMongoDBClient(IConfigurationManager configurationManager) {
+		MongoDBClientImpl instance = new MongoDBClientImpl(configurationManager);
 		instance.initialize();
 		return instance;
 	}
@@ -51,7 +52,8 @@ public class ServerStormModule {
 
 	@Provides
 	@Singleton
-	public ITextAnalyser provideGLRParser(TextAnalyserImpl instance) {
+	public ITextAnalyser provideGLRParser() {
+		TextAnalyserImpl instance = new TextAnalyserImpl();
 		instance.initialize();
 		return instance;
 	}
@@ -59,14 +61,16 @@ public class ServerStormModule {
 
 	@Provides
 	@Singleton
-	public IImageDownloader provideImageDownloader(ImageDownloaderImpl instance) {
+	public IImageDownloader provideImageDownloader() {
+		ImageDownloaderImpl instance = new ImageDownloaderImpl();
 		instance.initialize();
 		return instance;
 	}
 
 	@Provides
 	@Singleton
-	public ISearchManager provideSearchManager(ElasticsearchManagerImpl instance) {
+	public ISearchManager provideSearchManager(IConfigurationManager configurationManager) {
+		ElasticsearchManagerImpl instance = new ElasticsearchManagerImpl(configurationManager);
 		instance.initialize();
 		return instance;
 	}
@@ -74,7 +78,8 @@ public class ServerStormModule {
 
 	@Provides
 	@Singleton
-	public IGroovyInterpreter provideGroovyInterpreter(GroovyInterpreterImpl instance) {
+	public IGroovyInterpreter provideGroovyInterpreter(IConfigurationManager configurationManager) {
+		GroovyInterpreterImpl instance = new GroovyInterpreterImpl(configurationManager);
 		instance.initialize();
 		return instance;
 	}
@@ -87,7 +92,8 @@ public class ServerStormModule {
 
 	@Provides
 	@Singleton
-	public IMetricsManager provideMetricsManager(MetricsManagerImpl instance) {
+	public IMetricsManager provideMetricsManager(IConfigurationManager configurationManager) {
+		MetricsManagerImpl instance = new MetricsManagerImpl(configurationManager, metricRegistry);
 		instance.initialize();
 		return instance;
 	}

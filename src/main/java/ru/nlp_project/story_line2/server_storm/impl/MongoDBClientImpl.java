@@ -5,7 +5,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.ne;
-import static com.mongodb.client.model.Filters.not;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.CRAWLER_ENTRY_FIELD_NAME_ARCHIVED;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_ID;
 import static ru.nlp_project.story_line2.server_storm.utils.NamesUtil.FIELD_NAME_IN_PROCESS;
@@ -34,7 +33,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
 import org.bson.BsonDocument;
 import org.bson.BsonType;
 import org.bson.Document;
@@ -60,7 +58,6 @@ import ru.nlp_project.story_line2.server_storm.utils.NamesUtil;
  */
 public class MongoDBClientImpl implements IMongoDBClient {
 
-	@Inject
 	public IConfigurationManager configurationManager;
 	private MongoClient client;
 	private Logger log;
@@ -73,8 +70,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	private CodecRegistry codecRegistry;
 	private MongoCollection<DBObject> maintenanceCollection;
 
-	@Inject
-	public MongoDBClientImpl() {
+	public MongoDBClientImpl(IConfigurationManager configurationManager) {
+		this.configurationManager = configurationManager;
 		log = LoggerFactory.getLogger(this.getClass());
 	}
 
@@ -479,7 +476,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public long getUnprocessedNewsArticlesCount(String source) throws Exception {
 		MongoCollection<DBObject> collection = getStorylineCollection();
-		Bson filter = and(not(eq(FIELD_NAME_PROCESSED, true)), eq(FIELD_NAME_SOURCE, source));
+		Bson filter = and(ne(FIELD_NAME_PROCESSED, true), eq(FIELD_NAME_SOURCE, source));
 		return collection.count(filter);
 	}
 
@@ -526,6 +523,4 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		return collection.count(filter);
 
 	}
-
-
 }

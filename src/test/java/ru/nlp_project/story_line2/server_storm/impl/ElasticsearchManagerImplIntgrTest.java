@@ -45,7 +45,7 @@ public class ElasticsearchManagerImplIntgrTest {
 
 	@Before
 	public void setUp() {
-		testable = new ElasticsearchManagerImpl();
+		testable = new ElasticsearchManagerImpl(configurationManager);
 		testable.configurationManager = configurationManager;
 		testable.initialize();
 	}

@@ -44,9 +44,7 @@ public class MetricsManagerImpl implements IMetricsManager {
 	private static final String METHOD_CALL_DURATION = "method_call_duration";
 	private static final String DB_ARCHIVED_COUNT = "mongodb_records_archived_count";
 	private final Logger log;
-	@Inject
 	public IConfigurationManager configurationManager;
-	@Inject
 	public MetricRegistry metricRegistry;
 	private HashMap<String, Timer> timerHashMap = new HashMap<>();
 	private HashMap<String, Counter> counterHashMap = new HashMap<>();
@@ -56,9 +54,9 @@ public class MetricsManagerImpl implements IMetricsManager {
 	private ScheduledReporter methodStatsInfluxDBReporter;
 	private ScheduledReporter topoStatsInfluxDBReporter;
 
-
-	@Inject
-	public MetricsManagerImpl() {
+	public MetricsManagerImpl(IConfigurationManager configurationManager, MetricRegistry metricRegistry) {
+		this.configurationManager = configurationManager;
+		this.metricRegistry = metricRegistry;
 		log = LoggerFactory.getLogger(this.getClass());
 	}
 

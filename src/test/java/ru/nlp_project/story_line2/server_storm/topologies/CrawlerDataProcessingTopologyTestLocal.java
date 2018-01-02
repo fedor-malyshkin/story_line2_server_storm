@@ -4,7 +4,6 @@ import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.junit.Ignore;
 import org.junit.Test;
-
 import ru.nlp_project.story_line2.server_storm.IConfigurationManager;
 
 public class CrawlerDataProcessingTopologyTestLocal {
@@ -20,7 +19,8 @@ public class CrawlerDataProcessingTopologyTestLocal {
 		conf.put(IConfigurationManager.STORM_CONFIG_KEY,
 				"http://datahouse01.nlp-project.ru:9000/server_storm.yaml");
 		conf.setNumWorkers(1);
-		conf.setMaxSpoutPending(5000);
+		conf.setDebug(true);
+		conf.setMaxSpoutPending(50);
 		// время обработки не более 5 минут
 		conf.setMessageTimeoutSecs(60 * 5);
 

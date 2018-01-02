@@ -41,7 +41,6 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	private static final String INDEX_NEWS_ARTICLE = "news_article";
 	private static final Charset UTF8 = Charset.forName("UTF-8");
 	private static final String REQUEST_METHOD_POST = "POST";
-	@Inject
 	public IConfigurationManager configurationManager;
 	String readIndex;
 	String writeIndex;
@@ -50,8 +49,8 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 	private RestClient restClient;
 	private Map<String, String> stringFromClasspathCache = new HashMap<>();
 
-	@Inject
-	ElasticsearchManagerImpl() {
+	public ElasticsearchManagerImpl(IConfigurationManager configurationManager) {
+		this.configurationManager = configurationManager;
 		log = LoggerFactory.getLogger(this.getClass());
 	}
 

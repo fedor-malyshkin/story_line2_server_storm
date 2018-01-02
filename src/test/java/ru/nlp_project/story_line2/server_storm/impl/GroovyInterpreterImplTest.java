@@ -23,8 +23,7 @@ public class GroovyInterpreterImplTest {
 		masterConfiguration = new IConfigurationManager.MasterConfiguration();
 		metricsConfiguration = new IConfigurationManager.MetricsConfiguration();
 		masterConfiguration.contentExtractionScriptPath = scriptPath.toString();
-		testable = new GroovyInterpreterImpl();
-		testable.configurationManager = new ConfigurationManagerStub();
+		testable = new GroovyInterpreterImpl(new ConfigurationManagerStub());
 	}
 
 	@After

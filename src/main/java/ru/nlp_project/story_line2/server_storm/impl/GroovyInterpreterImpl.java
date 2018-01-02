@@ -41,7 +41,6 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 	private static final String GROOVY_EXT_NAME = "groovy";
 	private static final String SCRIPT_SOURCE_STATIC_FILED = "source";
 	private static final String SCRIPT_EXTRACT_DATA_METHOD_NAME = "extractData";
-	@Inject
 	public IConfigurationManager configurationManager;
 	protected String directory;
 	private GroovyScriptEngine scriptEngine;
@@ -49,8 +48,8 @@ public class GroovyInterpreterImpl implements IGroovyInterpreter {
 	private Logger log;
 
 
-	@Inject
-	public GroovyInterpreterImpl() {
+	public GroovyInterpreterImpl(IConfigurationManager configurationManager) {
+		this.configurationManager = configurationManager;
 		log = LoggerFactory.getLogger(this.getClass());
 	}
 

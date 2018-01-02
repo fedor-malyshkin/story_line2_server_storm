@@ -17,7 +17,7 @@ public class ElasticsearchManagerImplTest {
 
 	@Before
 	public void setUp() {
-		testable = new ElasticsearchManagerImpl();
+		testable = new ElasticsearchManagerImpl(null);
 		testable.writeIndex = "story_line2_write_index";
 		testable.readIndex = "story_line2_read_index";
 	}

@@ -23,7 +23,6 @@ public class ImageDownloaderImpl implements IImageDownloader {
 
 	private final Logger log;
 
-	@Inject
 	public ImageDownloaderImpl() {
 		log = LoggerFactory.getLogger(this.getClass());
 	}
