@@ -42,6 +42,7 @@ public class MetricsManagerImpl implements IMetricsManager {
 	private final static String CRAWLER_ENTRY = "crawler_entry";
 	private final static String NEWS_ARTICLE = "news_article";
 	private static final String METHOD_CALL_DURATION = "method_call_duration";
+	private static final String DB_ARCHIVED_COUNT = "mongodb_records_archived_count";
 	private final Logger log;
 	@Inject
 	public IConfigurationManager configurationManager;
@@ -265,6 +266,13 @@ public class MetricsManagerImpl implements IMetricsManager {
 		Timer timer = getTimer(
 				generateMethodStatMetricName(caller, clazz, methodName, METHOD_CALL_DURATION));
 		timer.update(callDuration, TimeUnit.MILLISECONDS);
+	}
+
+	@Override
+	public void archivedCrawlerEntriesCountDB(String source, long count) {
+		LongGaugeValueSupplier gauge = getGauge(
+				generateDataStatMetricName(CRAWLER_ENTRY, source, DB_ARCHIVED_COUNT));
+		gauge.set(count);
 	}
 
 	private class LongGauge implements Gauge<Long> {

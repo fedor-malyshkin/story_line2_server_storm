@@ -26,7 +26,7 @@ public class CrawlerEntry {
 
 
 	public static String idString(Map<String, Object> entry) {
-		return (String) entry.get(FIELD_NAME_ID).toString();
+		return entry.get(FIELD_NAME_ID).toString();
 	}
 
 	public static String imageUrl(Map<String, Object> entry) {
@@ -35,11 +35,7 @@ public class CrawlerEntry {
 
 	public static boolean inProcess(Map<String, Object> entry) {
 		Boolean object = (Boolean) entry.get(FIELD_NAME_IN_PROCESS);
-		if (object != null) {
-			return object.booleanValue();
-		} else {
-			return false;
-		}
+		return object != null && object.booleanValue();
 	}
 
 
@@ -61,11 +57,7 @@ public class CrawlerEntry {
 
 	public static boolean processed(Map<String, Object> entry) {
 		Boolean object = (Boolean) entry.get(FIELD_NAME_PROCESSED);
-		if (object != null) {
-			return object.booleanValue();
-		} else {
-			return false;
-		}
+		return object != null && object.booleanValue();
 	}
 
 
@@ -96,11 +88,11 @@ public class CrawlerEntry {
 	}
 
 	public static String source(Map<String, Object> entry) {
-		return (String) entry.get(CRAWLER_ENTRY_FIELD_NAME_SOURCE);
+		return (String) entry.get(FIELD_NAME_SOURCE);
 	}
 
 	public static void source(Map<String, Object> entry, String value) {
-		entry.put(CRAWLER_ENTRY_FIELD_NAME_SOURCE, value);
+		entry.put(FIELD_NAME_SOURCE, value);
 	}
 
 

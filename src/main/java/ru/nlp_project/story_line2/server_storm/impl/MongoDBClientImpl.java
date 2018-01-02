@@ -23,7 +23,6 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.IndexOptions;
@@ -84,7 +83,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		try {
 			MongoCollection<DBObject> collection = getCrawlerCollection();
 			List<String> fields = Arrays.asList(NEWS_ARTICLE_FIELD_NAME_CRAWLER_ID,
-					FIELD_NAME_PROCESSED,
+					FIELD_NAME_PROCESSED, FIELD_NAME_SOURCE,
 					CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, FIELD_NAME_IN_PROCESS,
 					IGroovyInterpreter.EXTR_KEY_PUB_DATE);
 			for (String field : fields) {
@@ -113,7 +112,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		try {
 			MongoCollection<DBObject> collection = getStorylineCollection();
 			List<String> fields = Arrays.asList(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_PATH,
-					NamesUtil.CRAWLER_ENTRY_FIELD_NAME_SOURCE,
+					FIELD_NAME_SOURCE, FIELD_NAME_PROCESSED,
 					NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED, FIELD_NAME_IN_PROCESS);
 			for (String field : fields) {
 				// in_process
@@ -160,7 +159,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	@Override
 	public Map<String, Object> getNextUnprocessedCrawlerEntry() throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
-		// in_processed != true AND proceed != true
+		// in_process != true AND processed != true AND archived != true
 		Bson filter = and(ne(FIELD_NAME_IN_PROCESS, true),
 				ne(FIELD_NAME_PROCESSED, true), ne(CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true));
 		// { "$set" : { "in_process" : "true"}}
@@ -293,7 +292,7 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		MongoCollection<DBObject> serverCollection = getStorylineCollection();
 		// find by source:path
 		Bson findSourcePath = and(
-				eq(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_SOURCE, CrawlerEntry.source(crawlerEntry)),
+				eq(FIELD_NAME_SOURCE, CrawlerEntry.source(crawlerEntry)),
 				eq(NamesUtil.CRAWLER_ENTRY_FIELD_NAME_PATH, CrawlerEntry.path(crawlerEntry)));
 		FindIterable<DBObject> find = serverCollection.find(findSourcePath).limit(1);
 		// если существует -- обновить "crawler_id"
@@ -453,9 +452,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		List<String> result = new ArrayList<>();
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
-		MongoCursor<String> iterator = sources.iterator();
-		while (iterator.hasNext()) {
-			result.add(iterator.next());
+		for (String source : sources) {
+			result.add(source);
 		}
 		return result;
 	}
@@ -465,9 +463,8 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		List<String> result = new ArrayList<>();
 		MongoCollection<DBObject> collection = getStorylineCollection();
 		DistinctIterable<String> sources = collection.distinct(FIELD_NAME_SOURCE, String.class);
-		MongoCursor<String> iterator = sources.iterator();
-		while (iterator.hasNext()) {
-			result.add(iterator.next());
+		for (String source : sources) {
+			result.add(source);
 		}
 		return result;
 	}
@@ -501,9 +498,16 @@ public class MongoDBClientImpl implements IMongoDBClient {
 	}
 
 	@Override
-	public long getUnprocessedCrawlerEntriesCount(String source) throws Exception {
+	public long getUnprocessedCrawlerEntriesCount(String source, boolean considerArchived)
+			throws Exception {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
-		Bson filter = and(not(eq(FIELD_NAME_PROCESSED, true)), eq(FIELD_NAME_SOURCE, source));
+		Bson filter = null;
+		if (considerArchived) {
+			filter = and(ne(FIELD_NAME_PROCESSED, true), eq(FIELD_NAME_SOURCE, source),
+					ne(CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true));
+		} else {
+			filter = and(ne(FIELD_NAME_PROCESSED, true), eq(FIELD_NAME_SOURCE, source));
+		}
 		return collection.count(filter);
 	}
 
@@ -512,6 +516,15 @@ public class MongoDBClientImpl implements IMongoDBClient {
 		MongoCollection<DBObject> collection = getCrawlerCollection();
 		Bson filter = eq(FIELD_NAME_SOURCE, source);
 		return collection.count(filter);
+	}
+
+	@Override
+	public long getArchivedCrawlerEntriesCount(String source) throws Exception {
+		MongoCollection<DBObject> collection = getCrawlerCollection();
+		Bson filter = and(eq(FIELD_NAME_SOURCE, source),
+				ne(CRAWLER_ENTRY_FIELD_NAME_ARCHIVED, true));
+		return collection.count(filter);
+
 	}
 
 

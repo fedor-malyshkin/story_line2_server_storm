@@ -17,4 +17,6 @@ public interface IMetricsManager {
 	void newsArticlesCountSearch(String source, long count);
 
 	void callDuration(Class caller, Class clazz, String methodName, long callDuration);
+
+	void archivedCrawlerEntriesCountDB(String source, long count);
 }

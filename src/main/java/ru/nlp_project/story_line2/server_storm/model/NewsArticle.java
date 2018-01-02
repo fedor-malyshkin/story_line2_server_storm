@@ -116,11 +116,11 @@ public class NewsArticle {
 	}
 
 	public static String source(Map<String, Object> entry) {
-		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_SOURCE);
+		return (String) entry.get(FIELD_NAME_SOURCE);
 	}
 
 	public static void source(Map<String, Object> entry, String source) {
-		entry.put(NEWS_ARTICLE_FIELD_NAME_SOURCE, source);
+		entry.put(FIELD_NAME_SOURCE, source);
 
 	}
 

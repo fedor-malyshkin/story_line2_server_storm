@@ -32,7 +32,7 @@ public class CrawlerDataProcessingTopology {
 
 	public static final String TOPOLOGY_NAME = "crawler_data_processing_topology";
 	private static final String BOLT_ELASTICSEARCH_INDEXER = "elasticsearch_indexer";
-	private static final String BOLT_CONTENT_EXTRACTOR = "content_extractor";
+	private static final String BOLT_CONTENT_EXTRACTOR = " ";
 	private static final String BOLT_TEXT_PROCESSOR = "text_processor";
 	private static final String SPOUT_CRAWLER_ENTRY_READER = "crawler_entry_reader";
 	private static final String SPOUT_MAINTENANCE_ENTRY_READER = "maintenance_reader";

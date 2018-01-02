@@ -111,8 +111,9 @@ public interface IMongoDBClient {
 
 	long getProcessedCrawlerEntriesCount(String source) throws Exception;
 
-	long getUnprocessedCrawlerEntriesCount(String source) throws Exception;
+	long getUnprocessedCrawlerEntriesCount(String source, boolean considerArchived) throws Exception;
 
 	long getCrawlerEntriesCount(String source) throws Exception;
 
+	long getArchivedCrawlerEntriesCount(String source) throws Exception;
 }

@@ -27,7 +27,21 @@
 При этом в случае если контент сайта не был получен с использованием готовых feed-ов, поля "publication_date", "title", "image_url" и "content" могут отсуствовать и требуется дополнительный анализ и извлечение информации (а поле "raw_content" -- присутствовать).
 
 ### Шаги работы
-TBD
+- SPOUT (crawler_entry_reader):
+	- ищем "crawler_entry" (in_process != true AND processed != true AND archived != true)
+	- ищем "crawler_entry" по совпадению "source:path", если находим обновляем crawler_id, если не находим - создаём новый
+	- полученный или найденный идентификатор используем как идентифактор tuple
+- BOLT (content_extractor):
+	- по полученному идентификатору получить "news_article", по идентификатору из него - "crawler_entry"
+	- если crawler_entry.rawContent == null - выходим, т.к. всё обработано ранее
+	- если crawler_entry.rawContent != null извлекаем данные скриптом
+	- если дата публикации (publication_date) оказалась непустой - обновляем её и в "crawler_entry"
+	- загружаем картинки в news_article
+	- обновляем news_article
+- BOLT (text_processor):
+	- nothing for the moment
+- BOLT (elasticsearch_indexer):
+	- simple indexation
 
 ## maintenance_topology
 Занимается обслуживанием данных продукта: вычистка старых записей, вычистка неиспользуемых записей, укомпоновка объектов...

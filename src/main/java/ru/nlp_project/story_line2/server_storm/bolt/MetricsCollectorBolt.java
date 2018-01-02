@@ -66,7 +66,10 @@ public class MetricsCollectorBolt implements IRichBolt {
 								mongoDBClient.getProcessedCrawlerEntriesCount(source));
 				metricsManager
 						.unprocessedCrawlerEntriesCountDB(source,
-								mongoDBClient.getUnprocessedCrawlerEntriesCount(source));
+								mongoDBClient.getUnprocessedCrawlerEntriesCount(source, true));
+				metricsManager
+						.archivedCrawlerEntriesCountDB(source,
+								mongoDBClient.getArchivedCrawlerEntriesCount(source));
 			}
 
 			List<String> newsArticleSources = mongoDBClient.getNewsArticleSources();

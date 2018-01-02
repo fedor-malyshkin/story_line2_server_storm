@@ -18,7 +18,6 @@ public class NamesUtil {
 	public final static String NEWS_ARTICLE_FIELD_NAME_TITLE = "title";
 	public final static String NEWS_ARTICLE_FIELD_NAME_URL = "url";
 	public final static String NEWS_ARTICLE_FIELD_NAME_PUBLICATION_DATE = "publication_date";
-	public final static String NEWS_ARTICLE_FIELD_NAME_SOURCE = "source";
 	public final static String NEWS_ARTICLE_FIELD_NAME_IMAGE_URL = "image_url";
 	public final static String NEWS_ARTICLE_FIELD_NAME_IMAGE_DATA = "image_data";
 
@@ -30,7 +29,6 @@ public class NamesUtil {
 	public static final String FIELD_NAME_IN_PROCESS = "in_process";
 	// images_purged
 	public static final String NEWS_ARTICLE_FIELD_NAME_IMAGES_PURGED = "images_purged";
-	public static final String CRAWLER_ENTRY_FIELD_NAME_SOURCE = "source";
 	public static final String CRAWLER_ENTRY_FIELD_NAME_PATH = "path";
 
 	public static final String FUN_NAME_GET_NEWS_ARTICLE = "get_news_article";
