@@ -35,7 +35,6 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 		try {
 			mongoDBClient.markCrawlerEntryAsProcessedByNewsArticleId((String) msgId);
 		} catch (Exception e) {
-			System.err.println("ack: " + e);
 			log.error("ack.log" + e.getMessage(), e);
 		}
 	}
@@ -65,9 +64,7 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 	public void fail(Object msgId) {
 		try {
 			mongoDBClient.unmarkCrawlerEntryAsInProcessByNewsArticleId((String) msgId);
-			log.error("fail:" + msgId);
 		} catch (Exception e) {
-			System.err.println("fail: " + e);
 			log.error("fail.log" + e.getMessage(), e);
 		}
 	}
@@ -92,9 +89,7 @@ public class CrawlerEntryReaderSpout implements IRichSpout {
 			collector.emit(
 					Arrays.asList(NamesUtil.TUPLE_TYPE_NEWS_ENTRY, CrawlerEntry.source(crawlerEntry), id),
 					id);
-			log.info("emitting news article: " + id);
 		} catch (Exception e) {
-			System.err.println("nextTuple: " + e);
 			log.error("nextTuple.log" + e.getMessage(), e);
 		}
 
