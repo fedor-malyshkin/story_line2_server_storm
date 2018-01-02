@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.text.StrSubstitutor;
 import org.apache.http.HttpEntity;
@@ -167,7 +166,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 		Response response;
 		try {
-			response = searchNewsArticle(requestData, count, null);
+			response = searchNewsArticleData(requestData, count, null);
 		} catch (IOException e) {
 			throw new IllegalStateException(
 					"Exception while search news headers: " + e.getMessage());
@@ -228,7 +227,14 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		return response.getStatusLine().getStatusCode();
 	}
 
-	private Response searchNewsArticle(String requestData, Integer size, Integer timeout)
+	/**
+	 * Generic method to get articles, headers and so on...
+	 *
+	 * @param requestData POST/GET body.
+	 * @param size required size
+	 * @param timeout timeout (can be null)
+	 */
+	private Response searchNewsArticleData(String requestData, Integer size, Integer timeout)
 			throws IOException {
 		RestClient elClient = getRestClient();
 		String endpoint = formatSearchEndpoint();
@@ -330,7 +336,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String endpoint = String.format("/%s/%s/_delete_by_query", writeIndex, INDEX_NEWS_ARTICLE);
 		String template = getStringFromClasspath("searchTemplate_deleteBySource.json");
 		Map<String, Object> subst = new HashMap<>();
-		subst.put("source", source);
+		subst.put(NEWS_KEY_SOURCE, source);
 		String requestData = fillTemplate(template, subst);
 
 		HttpEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
@@ -374,7 +380,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 		String endpoint = String.format("/%s/%s/_count", readIndex, INDEX_NEWS_ARTICLE);
 		String template = getStringFromClasspath("searchTemplate_countBySource.json");
 		Map<String, Object> subst = new HashMap<>();
-		subst.put("source", source);
+		subst.put(NEWS_KEY_SOURCE, source);
 		String requestData = fillTemplate(template, subst);
 
 		HttpEntity entity = new NStringEntity(requestData, ContentType.APPLICATION_JSON);
@@ -428,7 +434,7 @@ public class ElasticsearchManagerImpl implements ISearchManager {
 
 		Response response;
 		try {
-			response = searchNewsArticle(requestData, 1, null);
+			response = searchNewsArticleData(requestData, 1, null);
 		} catch (IOException e) {
 			throw new IllegalStateException(
 					"Exception while search news headers: " + e.getMessage());

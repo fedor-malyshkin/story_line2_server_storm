@@ -11,6 +11,9 @@
     {
       "publication_date": {
         "order": "desc"
+      },
+      "processing_date": {
+        "order": "desc"
       }
     }
   ],
