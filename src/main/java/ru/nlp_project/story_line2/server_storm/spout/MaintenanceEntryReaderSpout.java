@@ -59,8 +59,9 @@ public class MaintenanceEntryReaderSpout implements IRichSpout {
 	@Override
 	public Map<String, Object> getComponentConfiguration() {
 		Map<String, Object> conf = new HashMap<>();
-		// 1 minute
-		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60);
+		// 1 day
+		conf.put(Config.TOPOLOGY_SPOUT_WAIT_STRATEGY, "org.apache.storm.spout.SleepSpoutWaitStrategy");
+		conf.put(Config.TOPOLOGY_SLEEP_SPOUT_WAIT_STRATEGY_TIME_MS, 1_000 * 60 * 60 * 24);
 		return conf;
 	}
 

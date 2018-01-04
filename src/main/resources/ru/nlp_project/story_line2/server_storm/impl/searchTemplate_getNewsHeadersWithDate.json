@@ -1,6 +1,7 @@
 {
   "_source": [
     "publication_date",
+    "processing_date",
     "title",
     "path",
     "source",

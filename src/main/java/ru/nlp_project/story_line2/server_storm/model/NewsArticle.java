@@ -9,6 +9,8 @@ import java.util.Map;
 public class NewsArticle {
 
 
+
+
 	public static String content(Map<String, Object> entry) {
 		return (String) entry.get(NEWS_ARTICLE_FIELD_NAME_CONTENT);
 	}
@@ -114,6 +116,15 @@ public class NewsArticle {
 	public static void publicationDate(Map<String, Object> newsArticle, Date publicationDate) {
 		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_PUBLICATION_DATE, publicationDate);
 	}
+
+	public static Date processingDate(Map<String, Object> entry) {
+		return (Date) entry.get(NEWS_ARTICLE_FIELD_NAME_PROCESSING_DATE);
+	}
+
+	public static void processingDate(Map<String, Object> newsArticle, Date processingDate) {
+		newsArticle.put(NEWS_ARTICLE_FIELD_NAME_PROCESSING_DATE, processingDate);
+	}
+
 
 	public static String source(Map<String, Object> entry) {
 		return (String) entry.get(FIELD_NAME_SOURCE);

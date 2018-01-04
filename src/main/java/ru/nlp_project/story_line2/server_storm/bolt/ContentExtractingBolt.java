@@ -133,8 +133,10 @@ public class ContentExtractingBolt implements IRichBolt {
 				metricsManager
 						.callDuration(ContentExtractingBolt.class, IMongoDBClient.class, "updateCrawlerEntry",
 								System.currentTimeMillis() - start);
-
 			}
+			//  everething is clear
+			NewsArticle.processingDate(newsArticle, new Date());
+
 			if (title != null) {
 				NewsArticle.title(newsArticle, title);
 			}

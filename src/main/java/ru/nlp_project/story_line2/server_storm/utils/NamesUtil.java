@@ -18,6 +18,7 @@ public class NamesUtil {
 	public final static String NEWS_ARTICLE_FIELD_NAME_TITLE = "title";
 	public final static String NEWS_ARTICLE_FIELD_NAME_URL = "url";
 	public final static String NEWS_ARTICLE_FIELD_NAME_PUBLICATION_DATE = "publication_date";
+	public final static String NEWS_ARTICLE_FIELD_NAME_PROCESSING_DATE = "processing_date";
 	public final static String NEWS_ARTICLE_FIELD_NAME_IMAGE_URL = "image_url";
 	public final static String NEWS_ARTICLE_FIELD_NAME_IMAGE_DATA = "image_data";
 
